@@ -1,0 +1,8 @@
+{
+  "gitiles": {
+    "host": "localhost",
+    "pass": "pass",
+    "port": 80,
+    "user": "user"
+  }
+}

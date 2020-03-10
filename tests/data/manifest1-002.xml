@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote  name="aosp" fetch=".." review="https://android-review.googlesource.com/" />
+  <default revision="master" remote="aosp" sync-j="4" />
+  <project name="device/common" revision="7ffa83e83d9f2f6533ba40695b60beca51c453fc" />
+  <project name="platform/build/blueprint" path="build/blueprint" revision="f0e6d47072e7b5714f23b97473afb03e61a2ee8b" />
+  <project name="platform/build/kati" path="build/kati" revision="831dcffa2be201e2158c1851d9a9ad7abd6293ce" />
+  <project name="platform/build/soong" path="build/soong" revision="f9f6a9137632510fc36ec6b675b6df3eca41d3a3" />
+</manifest>

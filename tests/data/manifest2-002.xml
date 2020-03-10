@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote  name="aosp" fetch=".." review="https://android-review.googlesource.com/" />
+  <default revision="master" remote="aosp" sync-j="4" />
+  <project name="device/common" revision="587fc20905e241750152831bc27ffe99b576a535" />
+  <project name="platform/build" path="build/make" revision="5832bf1f5a949bc32a9b8f57ed46cb7f06606fe6" />
+  <project name="platform/build/blueprint" path="build/blueprint" revision="f0e6d47072e7b5714f23b97473afb03e61a2ee8b" />
+  <project name="platform/build/soong" path="build/soong" revision="f9f6a9137632510fc36ec6b675b6df3eca41d3a3" />
+</manifest>

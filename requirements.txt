@@ -1,0 +1,11 @@
+colorama
+coverage
+coveralls
+jsondiff
+openpyxl
+pytest
+requests
+setuptools
+twine
+wheel
+xmltodict

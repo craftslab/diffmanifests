@@ -1,0 +1,3 @@
+include diffmanifests/config/*.json
+include LICENSE
+include diff.py

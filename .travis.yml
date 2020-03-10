@@ -1,0 +1,20 @@
+language: python
+sudo: false
+matrix:
+  include:
+    - os: linux
+      dist: bionic
+      python: "3.8"
+services:
+  - docker
+git:
+  depth: 1
+install:
+  - pip install -Ur requirements.txt
+  - python setup.py develop
+  - rm -rf build
+script:
+  - cd $TRAVIS_BUILD_DIR
+  - coverage run --source=diffmanifests,tests -m py.test
+after_success:
+  coveralls
