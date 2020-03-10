@@ -86,6 +86,14 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 
 
 
+## Feature
+
+*Diff Manifests* supports to compare commit 2 with commit 1 in diagram A, but diagram B not supported.
+
+![branch](branch.png)
+
+
+
 ## License
 
 Project License can be found [here](https://github.com/craftslab/diffmanifests/blob/master/LICENSE).
