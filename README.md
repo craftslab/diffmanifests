@@ -88,7 +88,7 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 
 ## Feature
 
-*Diff Manifests* supports to compare commit 2 with commit 1 in diagram A, but diagram B not supported.
+*Diff Manifests* supports to compare commit 2 with commit 1 in diagram A & B, but diagram C not supported.
 
 ![branch](branch.png)
 
