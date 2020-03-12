@@ -41,7 +41,11 @@ class Querier(object):
         def _helper(repo, commit1, commit2, backward):
             buf = []
             commit = self.gitiles.commit(repo, commit1[Repo.COMMIT])
+            if commit is None:
+                return [], None, False
             commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
+            if commits is None:
+                return [], None, False
             completed = False
             next = commits.get('next', None) if backward else commits.get('previous', None)
             for item in commits['log']:
