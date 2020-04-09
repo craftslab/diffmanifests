@@ -52,6 +52,8 @@ def main():
         Logger.error('output invalid: %s' % arg.output_file)
         return -4
 
+    sys.setrecursionlimit(arg.recursion_depth)
+
     try:
         differ = Differ(config)
         buf = differ.run(manifest1, manifest2)

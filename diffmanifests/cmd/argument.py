@@ -29,6 +29,11 @@ class Argument(object):
                                   dest='output_file',
                                   help='output file, format: ' + ', '.join(Printer.format()),
                                   required=True)
+        self._parser.add_argument('-r', '--recursion-depth',
+                                  default=2000,
+                                  dest='recursion_depth',
+                                  help='recursion depth',
+                                  type=int)
         self._parser.add_argument('-v', '--version',
                                   action='version',
                                   version=VERSION)
