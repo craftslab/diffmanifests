@@ -61,6 +61,10 @@ def main():
         Logger.error(str(e))
         return -5
 
+    if len(buf) == 0:
+        Logger.info('manifest identical')
+        return 0
+
     try:
         querier = Querier(config)
         buf = querier.run(buf)

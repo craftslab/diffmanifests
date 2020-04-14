@@ -108,6 +108,8 @@ class Differ(object):
     def run(self, data1, data2):
         diff12 = jsondiff.diff(data1, data2)
         diff21 = jsondiff.diff(data2, data1)
+        if len(diff12) == 0 or len(diff21) == 0:
+            return {}
         if 'manifest' not in diff12 or 'manifest' not in diff21:
             raise DifferException('manifest invalid')
         return {
