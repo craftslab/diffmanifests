@@ -1,3 +1,3 @@
 #!/bin/bash
 
-coverage run --source=diffmanifests,tests -m py.test
+coverage run --source=diffmanifests,tests -m pytest
