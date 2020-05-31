@@ -15,6 +15,6 @@ install:
   - rm -rf build
 script:
   - cd $TRAVIS_BUILD_DIR
-  - coverage run --source=diffmanifests,tests -m py.test
+  - coverage run --source=diffmanifests,tests -m pytest
 after_success:
   coveralls
