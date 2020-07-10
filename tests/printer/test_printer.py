@@ -26,7 +26,8 @@ def test_printer():
             Commit.DATE: 'Tue Feb 18 23:29:44 2020 -0800',
             Commit.DIFF: Diff.INSERT.upper(),
             Commit.MESSAGE: 'Exclude holes from the block map.',
-            Commit.REPO: 'platform/build'
+            Commit.REPO: 'platform/build',
+            Commit.URL: 'https://android.googlesource.com/platform/build/+/ab9c7e6d04c896ddcbfc2e3bc99ab00e6a892288'
         }
     ]
 

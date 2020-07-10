@@ -14,7 +14,8 @@ head = {
     'D': Commit.AUTHOR,
     'E': Commit.DATE,
     'F': Commit.COMMIT,
-    'G': Commit.MESSAGE
+    'G': Commit.MESSAGE,
+    'H': Commit.URL
 }
 
 
@@ -52,6 +53,7 @@ class Printer(object):
             out.write(u'%s%s: %s\n' % (' '*3, head['E'], data[head['E']]))
             out.write(u'%s%s: %s\n' % (' '*1, head['F'], data[head['F']]))
             out.write(u'%s%s: %s\n' % (' '*0, head['G'], data[head['G']]))
+            out.write(u'%s%s: %s\n' % (' '*0, head['H'], data[head['H']]))
             out.write('\n')
 
         with open(name, 'w', encoding='utf8') as f:

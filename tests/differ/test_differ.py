@@ -22,9 +22,9 @@ def test_differ():
     files = os.listdir(path)
 
     for index in range(0, len(files)//2):
-        manifest1 = load(os.path.join(path, 'manifest1-%s.xml' % format(index+1, '003')))
-        manifest2 = load(os.path.join(path, 'manifest2-%s.xml' % format(index+1, '003')))
+        data1 = load(os.path.join(path, 'manifest1-%s.xml' % format(index+1, '003')))
+        data2 = load(os.path.join(path, 'manifest2-%s.xml' % format(index+1, '003')))
 
-        buf = differ.run(manifest1, manifest2)
+        buf = differ.run(data1, data2)
         assert buf is not None
         pprint.pprint(buf)

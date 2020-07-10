@@ -29,7 +29,8 @@ class Querier(object):
             Commit.DATE: commit['author']['time'],
             Commit.DIFF: label.upper(),
             Commit.MESSAGE: commit['message'].split('\n')[0],
-            Commit.REPO: repo
+            Commit.REPO: repo,
+            Commit.URL: self.gitiles.url() + '/' + repo + '/+/' + commit['commit']
         }]
 
     def _ahead(self, commit1, commit2):
@@ -83,16 +84,19 @@ class Querier(object):
             Repo.BRANCH: commit2[Repo.BRANCH],
             Repo.COMMIT: commit1[Repo.COMMIT]
         }
-        commits2, _ = self._commits(repo, commit, commit2, True)
+        commits2, status = self._commits(repo, commit, commit2, True)
+        buf2 = []
+        if status is True:
+            buf2.append(commit[Repo.COMMIT])
+        buf2.extend([item['commit'] for item in commits2])
         commit = {
             Repo.BRANCH: commit1[Repo.BRANCH],
             Repo.COMMIT: commit2[Repo.COMMIT]
         }
         commits1, _ = self._commits(repo, commit, commit1, False)
-        buf = [item['commit'] for item in commits2]
         commit = None
         for item in commits1:
-            if item['commit'] in buf:
+            if item['commit'] in buf2:
                 commit = {
                     Repo.BRANCH: commit1[Repo.BRANCH],
                     Repo.COMMIT: item['commit']

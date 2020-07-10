@@ -50,7 +50,7 @@ def test_querier():
     ret = querier._ahead(commit1, commit2)
     assert ret is True
 
-    repo = 'platform/art'
+    repo = 'device/common'
     commit1 = {
         'branch': 'master',
         'commit': '7ffa83e83d9f2f6533ba40695b60beca51c453fc'
@@ -65,7 +65,7 @@ def test_querier():
     except requests.exceptions.InvalidSchema:
         pass
 
-    repo = 'platform/art'
+    repo = 'device/common'
     commit1 = {
         'branch': 'master',
         'commit': '7ffa83e83d9f2f6533ba40695b60beca51c453fc'
@@ -80,7 +80,7 @@ def test_querier():
     except requests.exceptions.InvalidSchema:
         pass
 
-    repo = 'platform/art'
+    repo = 'device/common'
     commit1 = {
         'branch': 'master',
         'commit': '7ffa83e83d9f2f6533ba40695b60beca51c453fc'

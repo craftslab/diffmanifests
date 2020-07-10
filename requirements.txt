@@ -1,7 +1,6 @@
 colorama
 coverage
 coveralls
-jsondiff
 openpyxl
 pytest
 requests

@@ -45,6 +45,7 @@ class Commit:
     DIFF = 'diff'
     MESSAGE = 'message'
     REPO = 'repo'
+    URL = 'url'
 
 
 class Diff:

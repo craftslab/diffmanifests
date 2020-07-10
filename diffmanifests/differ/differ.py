@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import jsondiff
-
 from ..proto.proto import Diff, Repo
 
 
@@ -20,100 +18,96 @@ class Differ(object):
             pass
 
     def _revision(self, data):
-        if 'default' not in data['manifest'] or '@revision' not in data['manifest']['default']:
+        if '@revision' not in data['manifest']['default']:
             return ''
         return data['manifest']['default']['@revision']
 
-    def _commit(self, data, diff, label):
-        def _helper(data, project, commit, label):
-            if label == Diff.DELETE:
-                buf = [
-                    {
-                        Repo.BRANCH: project.get('@upstream', self._revision(data)),
-                        Repo.COMMIT: project.get('@revision', '')
-                    },
-                    {}
-                ]
-            elif label == Diff.INSERT:
-                buf = [
-                    {},
-                    {
-                        Repo.BRANCH: project.get('@upstream', self._revision(data)),
-                        Repo.COMMIT: project.get('@revision', '')
-                    }
-                ]
-            else:
-                buf = [
-                    {},
-                    {}
-                ]
-            commit[project['@name']] = buf
-            return commit
+    def _diff(self, data1, data2):
+        def _helper(data, project, name):
+            revision = ''
+            upstream = ''
+            for item in project:
+                if item['@name'] == name:
+                    revision = item.get('@revision', '')
+                    upstream = item.get('@upstream', self._revision(data))
+                    break
+            return revision, upstream
 
-        if 'project' not in diff['manifest']:
-            return None
-        buf = {}
-        for key, val in diff['manifest']['project'].items():
-            if str(key) == '$'+Diff.INSERT:
-                for item in val:
-                    index, _ = item
-                    buf = _helper(data, data['manifest']['project'][int(index)], buf, label)
-            elif '@name' in val:
-                buf = _helper(data, data['manifest']['project'][int(key)], buf, label)
-        return buf
+        project1 = data1['manifest']['project']
+        if type(project1) is not list:
+            project1 = [project1]
 
-    def _changed(self, data1, diff21, data2, diff12):
-        def _default(data, diff, commit):
-            for key, val in diff['manifest']['default'].items():
-                if str(key) == '$'+Diff.DELETE or str(key) == '$'+Diff.INSERT:
-                    continue
-                if key == '@revision':
-                    project = data['manifest']['project']
-                    for item in project:
-                        buf = commit.get(item['@name'], [])
-                        buf.append({
-                            Repo.BRANCH: item.get('@upstream', self._revision(data)),
-                            Repo.COMMIT: item.get('@revision', '')
-                        })
-                        commit[item['@name']] = buf
-            return commit
+        name1 = []
+        for item in project1:
+            name1.append(item['@name'])
 
-        def _project(data, diff, commit):
-            for key, val in diff['manifest']['project'].items():
-                if str(key) == '$'+Diff.DELETE or str(key) == '$'+Diff.INSERT:
-                    continue
-                if '@name' not in val and ('@revision' in val or '@upstream' in val):
-                    project = data['manifest']['project'][int(key)]
-                    buf = commit.get(project['@name'], [])
-                    buf.append({
-                        Repo.BRANCH: project.get('@upstream', self._revision(data)),
-                        Repo.COMMIT: project.get('@revision', '')
-                    })
-                    commit[project['@name']] = buf
-            return commit
+        project2 = data2['manifest']['project']
+        if type(project2) is not list:
+            project2 = [project2]
 
-        buf = {}
-        if 'default' in diff21['manifest'] and 'default' in diff12['manifest']:
-            buf = _default(data2, diff12, _default(data1, diff21, buf))
-        elif 'project' in diff21['manifest'] and 'project' in diff12['manifest']:
-            buf = _project(data2, diff12, _project(data1, diff21, buf))
-        return buf
+        name2 = []
+        for item in project2:
+            name2.append(item['@name'])
 
-    def _deleted(self, data, diff):
-        return self._commit(data, diff, Diff.DELETE)
+        changed = {}
+        buf = list(set(name1).intersection(set(name2)))
+        for item in buf:
+            revision1, upstream1 = _helper(data1, project1, item)
+            revision2, upstream2 = _helper(data2, project2, item)
+            changed[item] = [
+                {
+                    Repo.BRANCH: upstream1,
+                    Repo.COMMIT: revision1
+                },
+                {
+                    Repo.BRANCH: upstream2,
+                    Repo.COMMIT: revision2
+                }
+            ]
 
-    def _inserted(self, data, diff):
-        return self._commit(data, diff, Diff.INSERT)
+        deleted = {}
+        buf = list(set(name1).difference(set(name2)))
+        for item in buf:
+            revision1, upstream1 = _helper(data1, project1, item)
+            deleted[item] = [
+                {
+                    Repo.BRANCH: upstream1,
+                    Repo.COMMIT: revision1
+                },
+                {}
+            ]
+
+        inserted = {}
+        buf = list(set(name2).difference(set(name1)))
+        for item in buf:
+            revision2, upstream2 = _helper(data2, project2, item)
+            inserted[item] = [
+                {},
+                {
+                    Repo.BRANCH: upstream2,
+                    Repo.COMMIT: revision2
+                }
+            ]
+
+        return changed, deleted, inserted
 
     def run(self, data1, data2):
-        diff12 = jsondiff.diff(data1, data2)
-        diff21 = jsondiff.diff(data2, data1)
-        if len(diff12) == 0 or len(diff21) == 0:
-            return {}
-        if 'manifest' not in diff12 or 'manifest' not in diff21:
+        if 'manifest' not in data1 or 'manifest' not in data2:
             raise DifferException('manifest invalid')
+
+        if 'default' not in data1['manifest'] or 'default' not in data2['manifest']:
+            raise DifferException('default invalid')
+
+        if 'project' not in data1['manifest'] or 'project' not in data2['manifest']:
+            raise DifferException('project invalid')
+
+        if 'remote' not in data1['manifest'] or 'remote' not in data2['manifest']:
+            raise DifferException('remote invalid')
+
+        changed, deleted, inserted = self._diff(data1, data2)
+
         return {
-            Diff.CHANGE: self._changed(data1, diff21, data2, diff12),
-            Diff.DELETE: self._deleted(data1, diff21),
-            Diff.INSERT: self._inserted(data2, diff12)
+            Diff.CHANGE: changed,
+            Diff.DELETE: deleted,
+            Diff.INSERT: inserted
         }
