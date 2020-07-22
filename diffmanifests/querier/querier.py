@@ -3,7 +3,7 @@
 import datetime
 
 from ..gitiles.gitiles import Gitiles
-from ..proto.proto import Commit, Diff, Repo
+from ..proto.proto import Commit, Label, Repo
 
 
 class QuerierException(Exception):
@@ -78,44 +78,46 @@ class Querier(object):
         return buf, status
 
     def _commit1(self, repo, commit1, commit2):
-        if commit1[Repo.BRANCH] == commit2[Repo.BRANCH]:
-            return commit1
-        commit = {
-            Repo.BRANCH: commit2[Repo.BRANCH],
-            Repo.COMMIT: commit1[Repo.COMMIT]
-        }
-        commits2, status = self._commits(repo, commit, commit2, True)
-        buf2 = []
-        if status is True:
-            buf2.append(commit[Repo.COMMIT])
-        buf2.extend([item['commit'] for item in commits2])
-        commit = {
-            Repo.BRANCH: commit1[Repo.BRANCH],
-            Repo.COMMIT: commit2[Repo.COMMIT]
-        }
-        commits1, _ = self._commits(repo, commit, commit1, False)
-        commit = None
-        for item in commits1:
-            if item['commit'] in buf2:
-                commit = {
-                    Repo.BRANCH: commit1[Repo.BRANCH],
-                    Repo.COMMIT: item['commit']
-                }
+        commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
+        if commits is None:
+            return None, ''
+        while True:
+            commit = None
+            for item in commits['log']:
+                buf = self.gitiles.commits(repo, commit1[Repo.BRANCH], item['commit'])
+                if buf is not None and len(buf['log']) != 0:
+                    commit = {
+                        Repo.BRANCH: commit1[Repo.BRANCH],
+                        Repo.COMMIT: item['commit']
+                    }
+                    break
+            commits = commits.get('next', None)
+            if commit is not None or commits is None:
                 break
-        return commit
+        if commit is None:
+            return None, ''
+        if self._ahead(self.gitiles.commit(repo, commit1[Repo.COMMIT]),
+                       self.gitiles.commit(repo, commit[Repo.COMMIT])) is True:
+            label = Label.ADD_COMMIT
+        else:
+            label = Label.REMOVE_COMMIT
+        return commit, label
 
-    def _diff(self, repo, commit1, commit2, label):
+    def _diff(self, repo, commit1, commit2):
         buf = []
-        commit = self._commit1(repo, commit1, commit2)
+        commit, label = self._commit1(repo, commit1, commit2)
         if commit is None:
             return []
         commits, status = self._commits(repo, commit, commit2, True)
         if status is False:
             return []
         for item in commits:
-            buf.extend(self._build(repo, commit2[Repo.BRANCH], item, label))
+            buf.extend(self._build(repo, commit2[Repo.BRANCH], item, Label.ADD_COMMIT))
         if commit[Repo.COMMIT] != commit1[Repo.COMMIT]:
-            commits, status = self._commits(repo, commit1, commit, True)
+            if label == Label.ADD_COMMIT:
+                commits, status = self._commits(repo, commit1, commit, True)
+            else:
+                commits, status = self._commits(repo, commit, commit1, True)
             if status is False:
                 return []
             for item in commits:
@@ -125,12 +127,12 @@ class Querier(object):
     def _fetch(self, data, label):
         def _helper(repo, commit, label):
             buf1, buf2 = commit
-            if label == Diff.CHANGE:
-                return self._diff(repo, buf1, buf2, label)
-            elif label == Diff.DELETE:
-                return self._build(repo, buf1[Repo.BRANCH], self.gitiles.commit(repo, buf1[Repo.COMMIT]), label)
-            elif label == Diff.INSERT:
+            if label == Label.ADD_REPO:
                 return self._build(repo, buf2[Repo.BRANCH], self.gitiles.commit(repo, buf2[Repo.COMMIT]), label)
+            elif label == Label.REMOVE_REPO:
+                return self._build(repo, buf1[Repo.BRANCH], self.gitiles.commit(repo, buf1[Repo.COMMIT]), label)
+            elif label == Label.UPDATE_REPO:
+                return self._diff(repo, buf1, buf2)
             else:
                 return []
 
@@ -141,7 +143,7 @@ class Querier(object):
 
     def run(self, data):
         buf = []
-        buf.extend(self._fetch(data, Diff.CHANGE))
-        buf.extend(self._fetch(data, Diff.DELETE))
-        buf.extend(self._fetch(data, Diff.INSERT))
+        buf.extend(self._fetch(data, Label.ADD_REPO))
+        buf.extend(self._fetch(data, Label.REMOVE_REPO))
+        buf.extend(self._fetch(data, Label.UPDATE_REPO))
         return buf

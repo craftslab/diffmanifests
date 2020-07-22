@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..proto.proto import Diff, Repo
+from ..proto.proto import Label, Repo
 
 
 class DifferException(Exception):
@@ -49,39 +49,11 @@ class Differ(object):
         for item in project2:
             name2.append(item['@name'])
 
-        changed = {}
-        buf = list(set(name1).intersection(set(name2)))
-        for item in buf:
-            revision1, upstream1 = _helper(data1, project1, item)
-            revision2, upstream2 = _helper(data2, project2, item)
-            changed[item] = [
-                {
-                    Repo.BRANCH: upstream1,
-                    Repo.COMMIT: revision1
-                },
-                {
-                    Repo.BRANCH: upstream2,
-                    Repo.COMMIT: revision2
-                }
-            ]
-
-        deleted = {}
-        buf = list(set(name1).difference(set(name2)))
-        for item in buf:
-            revision1, upstream1 = _helper(data1, project1, item)
-            deleted[item] = [
-                {
-                    Repo.BRANCH: upstream1,
-                    Repo.COMMIT: revision1
-                },
-                {}
-            ]
-
-        inserted = {}
+        added = {}
         buf = list(set(name2).difference(set(name1)))
         for item in buf:
             revision2, upstream2 = _helper(data2, project2, item)
-            inserted[item] = [
+            added[item] = [
                 {},
                 {
                     Repo.BRANCH: upstream2,
@@ -89,7 +61,35 @@ class Differ(object):
                 }
             ]
 
-        return changed, deleted, inserted
+        removed = {}
+        buf = list(set(name1).difference(set(name2)))
+        for item in buf:
+            revision1, upstream1 = _helper(data1, project1, item)
+            removed[item] = [
+                {
+                    Repo.BRANCH: upstream1,
+                    Repo.COMMIT: revision1
+                },
+                {}
+            ]
+
+        updated = {}
+        buf = list(set(name1).intersection(set(name2)))
+        for item in buf:
+            revision1, upstream1 = _helper(data1, project1, item)
+            revision2, upstream2 = _helper(data2, project2, item)
+            updated[item] = [
+                {
+                    Repo.BRANCH: upstream1,
+                    Repo.COMMIT: revision1
+                },
+                {
+                    Repo.BRANCH: upstream2,
+                    Repo.COMMIT: revision2
+                }
+            ]
+
+        return added, removed, updated
 
     def run(self, data1, data2):
         if 'manifest' not in data1 or 'manifest' not in data2:
@@ -104,10 +104,10 @@ class Differ(object):
         if 'remote' not in data1['manifest'] or 'remote' not in data2['manifest']:
             raise DifferException('remote invalid')
 
-        changed, deleted, inserted = self._diff(data1, data2)
+        added, removed, updated = self._diff(data1, data2)
 
         return {
-            Diff.CHANGE: changed,
-            Diff.DELETE: deleted,
-            Diff.INSERT: inserted
+            Label.ADD_REPO: added,
+            Label.REMOVE_REPO: removed,
+            Label.UPDATE_REPO: updated
         }

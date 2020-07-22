@@ -3,33 +3,37 @@
 
 """Prototype
 {
-    "change": {
-        "REPO": [
-            {
-                "branch": BRANCH,
-                "commit": COMMIT
-            },
-            {
-                "branch": BRANCH,
-                "commit": COMMIT
-            }
-        ]
-    },
-    "delete": {
-        "REPO": [
-            {
-                "branch": BRANCH,
-                "commit": COMMIT
-            },
-            {}
-        ]
-    },
-    "insert": {
+    "add repo": {
         "REPO": [
             {},
             {
                 "branch": BRANCH,
-                "commit": COMMIT
+                "commit": COMMIT,
+                "diff": "add commit"
+            }
+        ]
+    },
+    "remove repo": {
+        "REPO": [
+            {
+                "branch": BRANCH,
+                "commit": COMMIT,
+                "diff": "remove commit"
+            },
+            {}
+        ]
+    },
+    "update repo": {
+        "REPO": [
+            {
+                "branch": BRANCH,
+                "commit": COMMIT,
+                "diff": "add commit"
+            },
+            {
+                "branch": BRANCH,
+                "commit": COMMIT,
+                "diff": "remove commit"
             }
         ]
     }
@@ -48,12 +52,15 @@ class Commit:
     URL = 'url'
 
 
-class Diff:
-    CHANGE = 'change'
-    DELETE = 'delete'
-    INSERT = 'insert'
+class Label:
+    ADD_COMMIT = 'add commit'
+    ADD_REPO = 'add repo'
+    REMOVE_COMMIT = 'remove commit'
+    REMOVE_REPO = 'remove repo'
+    UPDATE_REPO = 'update repo'
 
 
 class Repo:
     BRANCH = 'branch'
     COMMIT = 'commit'
+    DIFF = 'diff'
