@@ -91,9 +91,12 @@ class Querier(object):
                         Repo.COMMIT: item['commit']
                     }
                     break
-            commits = commits.get('next', None)
-            if commit is not None or commits is None:
+            if commit is not None:
                 break
+            buf = commits.get('next', None)
+            if buf is None:
+                break
+            commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], buf)
         if commit is None:
             return None, ''
         if self._ahead(self.gitiles.commit(repo, commit1[Repo.COMMIT]),
