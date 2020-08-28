@@ -3,6 +3,7 @@
 import datetime
 
 from ..gitiles.gitiles import Gitiles
+from ..logger.logger import Logger
 from ..proto.proto import Commit, Label, Repo
 
 
@@ -130,6 +131,7 @@ class Querier(object):
     def _fetch(self, data, label):
         def _helper(repo, commit, label):
             buf1, buf2 = commit
+            Logger.info(label + ': ' + repo)
             if label == Label.ADD_REPO:
                 return self._build(repo, buf2[Repo.BRANCH], self.gitiles.commit(repo, buf2[Repo.COMMIT]), label)
             elif label == Label.REMOVE_REPO:

@@ -78,6 +78,8 @@ class Differ(object):
         for item in buf:
             revision1, upstream1 = _helper(data1, project1, item)
             revision2, upstream2 = _helper(data2, project2, item)
+            if revision1 == revision2:
+                continue
             updated[item] = [
                 {
                     Repo.BRANCH: upstream1,
