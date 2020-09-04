@@ -76,9 +76,10 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 ```
 {
   "gitiles": {
-    "host": "localhost",
     "pass": "pass",
-    "port": 80,
+    "retry": 1,
+    "timeout": -1,
+    "url": "http://localhost:80",
     "user": "user"
   }
 }

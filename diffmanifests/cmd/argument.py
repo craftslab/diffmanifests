@@ -8,8 +8,7 @@ from .version import VERSION
 
 class Argument(object):
     def __init__(self):
-        self._parser = argparse.ArgumentParser(description='',
-                                               formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        self._parser = argparse.ArgumentParser(description='Diff Manifests')
         self._add()
 
     def _add(self):

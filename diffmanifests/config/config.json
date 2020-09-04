@@ -1,6 +1,8 @@
 {
   "gitiles": {
     "pass": "",
+    "retry": 1,
+    "timeout": -1,
     "url": "https://android.googlesource.com",
     "user": ""
   }
