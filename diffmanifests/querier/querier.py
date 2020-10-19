@@ -84,9 +84,9 @@ class Querier(object):
             return None, ''
         while True:
             commit = None
-            for item in commits['log']:
-                buf = self.gitiles.commits(repo, commit1[Repo.BRANCH], item['commit'])
-                if buf is not None and len(buf['log']) != 0:
+            for item in commits.get('log', []):
+                data = self.gitiles.commits(repo, commit1[Repo.BRANCH], item['commit'])
+                if data is not None and len(data['log']) != 0:
                     commit = {
                         Repo.BRANCH: commit1[Repo.BRANCH],
                         Repo.COMMIT: item['commit']
@@ -94,14 +94,17 @@ class Querier(object):
                     break
             if commit is not None:
                 break
-            buf = commits.get('next', None)
-            if buf is None:
+            data = commits.get('next', None)
+            if data is None:
                 break
-            commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], buf)
+            commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], data)
         if commit is None:
             return None, ''
-        if self._ahead(self.gitiles.commit(repo, commit1[Repo.COMMIT]),
-                       self.gitiles.commit(repo, commit[Repo.COMMIT])) is True:
+        data1 = self.gitiles.commit(repo, commit1[Repo.COMMIT])
+        data2 = self.gitiles.commit(repo, commit[Repo.COMMIT])
+        if data1 is None or data2 is None:
+            return None, ''
+        if self._ahead(data1, data2) is True:
             label = Label.ADD_COMMIT
         else:
             label = Label.REMOVE_COMMIT
@@ -133,9 +136,15 @@ class Querier(object):
             buf1, buf2 = commit
             Logger.info(label + ': ' + repo)
             if label == Label.ADD_REPO:
-                return self._build(repo, buf2[Repo.BRANCH], self.gitiles.commit(repo, buf2[Repo.COMMIT]), label)
+                data = self.gitiles.commit(repo, buf2[Repo.COMMIT])
+                if data is None:
+                    return []
+                return self._build(repo, buf2[Repo.BRANCH], data, label)
             elif label == Label.REMOVE_REPO:
-                return self._build(repo, buf1[Repo.BRANCH], self.gitiles.commit(repo, buf1[Repo.COMMIT]), label)
+                data = self.gitiles.commit(repo, buf1[Repo.COMMIT])
+                if data is None:
+                    return []
+                return self._build(repo, buf1[Repo.BRANCH], data, label)
             elif label == Label.UPDATE_REPO:
                 return self._diff(repo, buf1, buf2)
             else:
