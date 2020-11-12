@@ -44,11 +44,14 @@
 class Commit:
     AUTHOR = 'author'
     BRANCH = 'branch'
+    CHANGE = 'change'
     COMMIT = 'commit'
+    COMMITTER = 'committer'
     DATE = 'date'
     DIFF = 'diff'
     MESSAGE = 'message'
     REPO = 'repo'
+    TOPIC = 'topic'
     URL = 'url'
 
 

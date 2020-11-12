@@ -1,4 +1,12 @@
 {
+  "gerrit": {
+    "pass": "",
+    "query": {
+      "option": ["CURRENT_REVISION"]
+    },
+    "url": "https://android-review.googlesource.com",
+    "user": ""
+  },
   "gitiles": {
     "pass": "",
     "retry": 1,

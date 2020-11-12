@@ -7,47 +7,24 @@
 
 
 
-*Diff Manifests* is a tool used to see deeper differences between manifests via Gitiles API.
-
+*Diff Manifests* is a tool used to see deeper differences between manifests via Gerrit & Gitiles API.
 
 
 ## Requirement
 
-- python (3.7+)
-- pip
-- python-dev
+- Python >= 3.7
 
 
 
-## Installation
-
-On Ubuntu / Mint, install *Diff Manifests* with the following commands:
+## Install
 
 ```bash
-apt update
-apt install python3-dev python3-pip python3-setuptools
 pip install diffmanifests
 ```
 
-On OS X, install *Diff Manifests* via [Homebrew](https://brew.sh/) (or via [Linuxbrew](https://linuxbrew.sh/) on Linux):
-
-```
-TBD
-```
-
-On Windows, install *Diff Manifests* with the following commands:
-
-```
-pip install -U pywin32
-pip install -U pyinstaller
-pip install -Ur requirements.txt
-
-pyinstaller --clean --name diffmanifests -F diff.py
-```
 
 
-
-## Updating
+## Update
 
 ```bash
 pip install diffmanifests --upgrade
@@ -55,19 +32,15 @@ pip install diffmanifests --upgrade
 
 
 
-## Running
+## Run
 
 ```bash
-diffmanifests \
-    --config-file config.json \
-    --manifest1-file manifest1.xml \
-    --manifest2-file manifest2.xml \
-    --output-file output.json
+diffmanifests --config-file config.json --manifest1-file manifest1.xml --manifest2-file manifest2.xml --output-file output.json
 ```
 
 
 
-## Setting
+## Settings
 
 *Diff Manifests* parameters can be set in the directory [config](https://github.com/craftslab/diffmanifests/blob/master/diffmanifests/config).
 
@@ -75,6 +48,11 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 
 ```
 {
+  "gerrit": {
+    "pass": "pass",
+    "url": "http://localhost:80",
+    "user": "user"
+  },
   "gitiles": {
     "pass": "pass",
     "retry": 1,
@@ -95,12 +73,12 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 
 
 
-## License
-
-Project License can be found [here](https://github.com/craftslab/diffmanifests/blob/master/LICENSE).
-
-
-
 ## Reference
 
 [git-repo/subcmds/diffmanifests](https://gerrit.googlesource.com/git-repo/+/master/subcmds/diffmanifests.py)
+
+
+
+## License
+
+Project License can be found [here](https://github.com/craftslab/diffmanifests/blob/master/LICENSE).

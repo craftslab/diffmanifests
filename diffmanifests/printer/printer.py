@@ -15,7 +15,10 @@ head = {
     'E': Commit.DATE,
     'F': Commit.COMMIT,
     'G': Commit.MESSAGE,
-    'H': Commit.URL
+    'H': Commit.URL,
+    'I': Commit.CHANGE,
+    'J': Commit.COMMITTER,
+    'K': Commit.TOPIC
 }
 
 
@@ -46,14 +49,17 @@ class Printer(object):
     def _txt(self, data, name):
         def _txt_helper(data, out):
             global head
-            out.write(u'%s%s: %s\n' % (' '*3, head['A'], data[head['A']]))
-            out.write(u'%s%s: %s\n' % (' '*3, head['B'], data[head['B']]))
-            out.write(u'%s%s: %s\n' % (' '*1, head['C'], data[head['C']]))
-            out.write(u'%s%s: %s\n' % (' '*1, head['D'], data[head['D']]))
-            out.write(u'%s%s: %s\n' % (' '*3, head['E'], data[head['E']]))
-            out.write(u'%s%s: %s\n' % (' '*1, head['F'], data[head['F']]))
-            out.write(u'%s%s: %s\n' % (' '*0, head['G'], data[head['G']]))
-            out.write(u'%s%s: %s\n' % (' '*0, head['H'], data[head['H']]))
+            out.write(u'%s%s: %s\n' % (' '*5, head['A'], data[head['A']]))
+            out.write(u'%s%s: %s\n' % (' '*5, head['B'], data[head['B']]))
+            out.write(u'%s%s: %s\n' % (' '*3, head['C'], data[head['C']]))
+            out.write(u'%s%s: %s\n' % (' '*3, head['D'], data[head['D']]))
+            out.write(u'%s%s: %s\n' % (' '*5, head['E'], data[head['E']]))
+            out.write(u'%s%s: %s\n' % (' '*3, head['F'], data[head['F']]))
+            out.write(u'%s%s: %s\n' % (' '*2, head['G'], data[head['G']]))
+            out.write(u'%s%s: %s\n' % (' '*6, head['H'], data[head['H']]))
+            out.write(u'%s%s: %s\n' % (' '*3, head['I'], data[head['I']]))
+            out.write(u'%s%s: %s\n' % (' '*0, head['J'], data[head['J']]))
+            out.write(u'%s%s: %s\n' % (' '*4, head['K'], data[head['K']]))
             out.write('\n')
 
         with open(name, 'w', encoding='utf8') as f:

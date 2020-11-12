@@ -24,13 +24,19 @@ def test_querier():
     branch = 'master'
     commit = {
         'author': {
-            'email': 'dvander@google.com',
-            'name': 'David Anderson',
-            'time': 'Tue Feb 18 23:29:44 2020 -0800'
+            'email': 'tomcherry@google.com',
+            'name': 'Tom Cherry',
+            'time': 'Tue Feb 18 20:54:58 2020 +0000'
         },
-        'commit': 'ab9c7e6d04c896ddcbfc2e3bc99ab00e6a892288',
-        'message': 'Exclude holes from the block map.'
+        'commit': 'c9d21efbbfffd0fc41369a34e2f600c3865ac03b',
+        'committer': {
+            'email': 'tomcherry@google.com',
+            'name': 'Tom Cherry',
+            'time': 'Tue Feb 18 20:54:58 2020 +0000'
+        },
+        'message': 'Merge "Make oemaids_headers available to vendor."'
     }
+
     label = Label.ADD_COMMIT
 
     buf = querier._build(repo, branch, commit, label)

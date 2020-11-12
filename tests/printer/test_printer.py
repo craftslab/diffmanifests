@@ -27,7 +27,10 @@ def test_printer():
             Commit.DIFF: Label.ADD_COMMIT.upper(),
             Commit.MESSAGE: 'Exclude holes from the block map.',
             Commit.REPO: 'platform/build',
-            Commit.URL: 'https://android.googlesource.com/platform/build/+/ab9c7e6d04c896ddcbfc2e3bc99ab00e6a892288'
+            Commit.URL: 'https://android.googlesource.com/platform/build/+/ab9c7e6d04c896ddcbfc2e3bc99ab00e6a892288',
+            Commit.CHANGE: 'https://android-review.googlesource.com/1000000',
+            Commit.COMMITTER: 'David Anderson <dvander@google.com>',
+            Commit.TOPIC: 'build'
         }
     ]
 

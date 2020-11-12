@@ -2,6 +2,7 @@
 
 import datetime
 
+from ..gerrit.gerrit import Gerrit
 from ..gitiles.gitiles import Gitiles
 from ..logger.logger import Logger
 from ..proto.proto import Commit, Label, Repo
@@ -20,17 +21,28 @@ class Querier(object):
     def __init__(self, config=None):
         if config is None:
             raise QuerierException('config invalid')
+        self.gerrit = Gerrit(config)
         self.gitiles = Gitiles(config)
 
     def _build(self, repo, branch, commit, label):
+        def _query(commit):
+            buf = self.gerrit.query('commit:' + commit, 0)
+            if buf is None or len(buf) != 1:
+                return '', ''
+            return self.gerrit.url().replace('/a', '/') + str(buf[0]['_number']), buf[0].get('topic', '')
+
+        change, topic = _query(commit['commit'])
         return [{
             Commit.AUTHOR: '%s <%s>' % (commit['author']['name'], commit['author']['email']),
             Commit.BRANCH: branch,
+            Commit.CHANGE: change,
             Commit.COMMIT: commit['commit'],
+            Commit.COMMITTER: '%s <%s>' % (commit['committer']['name'], commit['committer']['email']),
             Commit.DATE: commit['author']['time'],
             Commit.DIFF: label.upper(),
             Commit.MESSAGE: commit['message'].split('\n')[0],
             Commit.REPO: repo,
+            Commit.TOPIC: topic,
             Commit.URL: self.gitiles.url() + '/' + repo + '/+/' + commit['commit']
         }]
 
