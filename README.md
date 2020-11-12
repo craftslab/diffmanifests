@@ -2,7 +2,6 @@
 
 [![PyPI](https://img.shields.io/pypi/v/diffmanifests.svg?color=brightgreen)](https://pypi.org/project/diffmanifests/)
 [![Travis](https://travis-ci.com/craftslab/diffmanifests.svg?branch=master)](https://travis-ci.com/craftslab/diffmanifests)
-[![Coverage Status](https://coveralls.io/repos/github/craftslab/diffmanifests/badge.svg)](https://coveralls.io/github/craftslab/diffmanifests?branch=master)
 [![License](https://img.shields.io/github/license/craftslab/diffmanifests.svg?color=brightgreen)](https://github.com/craftslab/diffmanifests/blob/master/LICENSE)
 
 
