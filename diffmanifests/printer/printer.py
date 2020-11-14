@@ -5,6 +5,7 @@ import openpyxl
 import os
 import time
 
+from openpyxl.styles import Alignment, Font
 from ..proto.proto import Commit
 
 head = {
@@ -68,12 +69,26 @@ class Printer(object):
                 _txt_helper(item, f)
 
     def _xlsx(self, data, name):
+        def _styling_head(sheet):
+            for item in head.keys():
+                sheet[item+'1'].alignment = Alignment(horizontal='center', shrink_to_fit=True, vertical='center')
+                sheet[item+'1'].font = Font(bold=True, name='Calibri')
+            sheet.freeze_panes = sheet['B2']
+
+        def _styling_data(sheet, rows):
+            for key in head.keys():
+                for row in range(rows):
+                    sheet[key+str(row+2)].alignment = Alignment(vertical='center')
+                    sheet[key+str(row+2)].font = Font(bold=False, name='Calibri')
+
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         ws.append([head[key].upper() for key in sorted(head.keys())])
         for item in data:
             ws.append([item[head[key]] for key in sorted(head.keys())])
+        _styling_head(ws)
+        _styling_data(ws, len(data))
         wb.save(filename=name)
 
     def run(self, data, name):
