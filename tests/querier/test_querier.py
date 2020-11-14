@@ -15,6 +15,11 @@ def test_exception():
 
 
 def test_querier():
+    try:
+        _ = Querier(None)
+    except QuerierException:
+        assert True
+
     config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
 
     querier = Querier(config)
@@ -74,6 +79,19 @@ def test_querier():
     repo = 'device/common'
     commit1 = {
         'branch': 'master',
+        'commit': 'eeeeeee'
+    }
+    commit2 = {
+        'branch': 'master',
+        'commit': 'fffffff'
+    }
+
+    _, status = querier._commits(repo, commit1, commit2, True)
+    assert status is False
+
+    repo = 'device/common'
+    commit1 = {
+        'branch': 'master',
         'commit': '7ffa83e83d9f2f6533ba40695b60beca51c453fc'
     }
     commit2 = {
@@ -89,6 +107,19 @@ def test_querier():
     repo = 'device/common'
     commit1 = {
         'branch': 'master',
+        'commit': 'eeeeeee'
+    }
+    commit2 = {
+        'branch': 'master',
+        'commit': 'fffffff'
+    }
+
+    commit, _ = querier._commit1(repo, commit1, commit2)
+    assert commit is None
+
+    repo = 'device/common'
+    commit1 = {
+        'branch': 'master',
         'commit': '7ffa83e83d9f2f6533ba40695b60beca51c453fc'
     }
     commit2 = {
@@ -100,6 +131,19 @@ def test_querier():
         _ = querier._diff(repo, commit1, commit2)
     except requests.exceptions.InvalidSchema:
         pass
+
+    repo = 'device/common'
+    commit1 = {
+        'branch': 'master',
+        'commit': 'eeeeeee'
+    }
+    commit2 = {
+        'branch': 'master',
+        'commit': 'fffffff'
+    }
+
+    buf = querier._diff(repo, commit1, commit2)
+    assert len(buf) == 0
 
     buf = {
         'add repo': {

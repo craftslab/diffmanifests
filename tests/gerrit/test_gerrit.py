@@ -9,6 +9,11 @@ def test_exception():
 
 
 def test_gerrit():
+    try:
+        _ = Gerrit(None)
+    except GerritException:
+        assert True
+
     config = {
         "gerrit": {
             "pass": "",
@@ -26,5 +31,11 @@ def test_gerrit():
     buf = gerrit.get(1358810)
     assert buf is not None
 
+    buf = gerrit.get(0000000)
+    assert buf is None
+
     buf = gerrit.query('change:1358810', 0)
     assert buf is not None
+
+    buf = gerrit.query('change:0000000', 0)
+    assert buf is None
