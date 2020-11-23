@@ -1,4 +1,4 @@
-# Diff Manifests
+# diffmanifests
 
 [![PyPI](https://img.shields.io/pypi/v/diffmanifests.svg?color=brightgreen)](https://pypi.org/project/diffmanifests/)
 [![Travis](https://travis-ci.com/craftslab/diffmanifests.svg?branch=master)](https://travis-ci.com/craftslab/diffmanifests)
