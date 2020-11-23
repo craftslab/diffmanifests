@@ -7,7 +7,7 @@
 
 
 
-*Diff Manifests* is a tool used to see deeper differences between manifests via Gerrit & Gitiles API.
+*diffmanifests* is a tool used to see deeper differences between manifests via Gerrit & Gitiles API.
 
 
 ## Requirement
