@@ -73,12 +73,12 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 
 
 
-## Reference
-
-[git-repo/subcmds/diffmanifests](https://gerrit.googlesource.com/git-repo/+/master/subcmds/diffmanifests.py)
-
-
-
 ## License
 
 Project License can be found [here](https://github.com/craftslab/diffmanifests/blob/master/LICENSE).
+
+
+
+## Reference
+
+[git-repo/subcmds/diffmanifests](https://gerrit.googlesource.com/git-repo/+/master/subcmds/diffmanifests.py)
