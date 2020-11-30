@@ -46,7 +46,7 @@ diffmanifests --config-file config.json --manifest1-file manifest1.xml --manifes
 
 An example of configuration in [config.json](https://github.com/craftslab/diffmanifests/blob/master/diffmanifests/config/config.json):
 
-```
+```json
 {
   "gerrit": {
     "pass": "pass",
