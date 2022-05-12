@@ -40,7 +40,7 @@ class Querier(object):
             Commit.COMMITTER: '%s <%s>' % (commit['committer']['name'], commit['committer']['email']),
             Commit.DATE: commit['author']['time'],
             Commit.DIFF: label.upper(),
-            Commit.MESSAGE: commit['message'].split('\n')[0],
+            Commit.MESSAGE: commit['message'].strip(),
             Commit.REPO: repo,
             Commit.TOPIC: topic,
             Commit.URL: self.gitiles.url() + '/' + repo + '/+/' + commit['commit']

@@ -40,6 +40,10 @@ def test_querier():
             'time': 'Tue Feb 18 20:54:58 2020 +0000'
         },
         'message': 'Merge "Make oemaids_headers available to vendor."'
+                   ''
+                   'Detailed description'
+                   ''
+                   'Change-Id: 12345678'
     }
 
     label = Label.ADD_COMMIT
