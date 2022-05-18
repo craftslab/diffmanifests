@@ -3,10 +3,14 @@
 import json
 import openpyxl
 import os
+import re
 import time
 
 from openpyxl.styles import Alignment, Font
 from ..proto.proto import Commit
+
+# Refer: openpyxl/cell/cell.py
+ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 
 head = {
     'A': Commit.DIFF,
@@ -86,7 +90,10 @@ class Printer(object):
         ws.title = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         ws.append([head[key].upper() for key in sorted(head.keys())])
         for item in data:
-            ws.append([item[head[key]] for key in sorted(head.keys())])
+            buf = []
+            for key in sorted(head.keys()):
+                buf.append(re.sub(ILLEGAL_CHARACTERS_RE, '', item[head[key]]))
+            ws.append(buf)
         _styling_head(ws)
         _styling_data(ws, len(data))
         wb.save(filename=name)

@@ -20,7 +20,7 @@ def test_printer():
 
     buf = [
         {
-            Commit.AUTHOR: 'David Anderson <dvander@google.com>',
+            Commit.AUTHOR: 'David\bAnderson <dvander@google.com>',
             Commit.BRANCH: 'master',
             Commit.COMMIT: 'ab9c7e6d04c896ddcbfc2e3bc99ab00e6a892288',
             Commit.DATE: 'Tue Feb 18 23:29:44 2020 -0800',
