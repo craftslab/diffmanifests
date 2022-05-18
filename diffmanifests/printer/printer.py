@@ -92,7 +92,7 @@ class Printer(object):
         for item in data:
             buf = []
             for key in sorted(head.keys()):
-                buf.append(re.sub(ILLEGAL_CHARACTERS_RE, '', item[head[key]]))
+                buf.append(re.sub(ILLEGAL_CHARACTERS_RE, ' ', item[head[key]]))
             ws.append(buf)
         _styling_head(ws)
         _styling_data(ws, len(data))
