@@ -47,8 +47,21 @@ class Querier(object):
         }]
 
     def _ahead(self, commit1, commit2):
-        buf1 = datetime.datetime.strptime(commit1['committer']['time'], '%a %b %d %H:%M:%S %Y %z')
-        buf2 = datetime.datetime.strptime(commit2['committer']['time'], '%a %b %d %H:%M:%S %Y %z')
+        def _helper(data):
+            for item in data:
+                if '\u4e00' <= item <= '\u9fff':
+                    return True
+            return False
+        buf1 = " ".join(commit1['committer']['time'].split(" ")[1:])
+        if _helper(buf1) is True:
+            buf1 = datetime.datetime.strptime(buf1, '%m月 %d %H:%M:%S %Y %z')
+        else:
+            buf1 = datetime.datetime.strptime(buf1, '%b %d %H:%M:%S %Y %z')
+        buf2 = " ".join(commit2['committer']['time'].split(" ")[1:])
+        if _helper(buf2) is True:
+            buf2 = datetime.datetime.strptime(buf2, '%m月 %d %H:%M:%S %Y %z')
+        else:
+            buf2 = datetime.datetime.strptime(buf2, '%b %d %H:%M:%S %Y %z')
         return buf2 > buf1
 
     def _commits(self, repo, commit1, commit2, backward):

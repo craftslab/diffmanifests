@@ -65,6 +65,20 @@ def test_querier():
     ret = querier._ahead(commit1, commit2)
     assert ret is True
 
+    commit1 = {
+        'committer': {
+            'time': '周二 2月 18 23:29:44 2020 -0800'
+        }
+    }
+    commit2 = {
+        'committer': {
+            'time': '周二 2月 18 23:29:45 2020 -0800'
+        }
+    }
+
+    ret = querier._ahead(commit1, commit2)
+    assert ret is True
+
     repo = 'device/common'
     commit1 = {
         'branch': 'master',
