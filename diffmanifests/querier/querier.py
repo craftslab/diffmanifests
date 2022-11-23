@@ -52,6 +52,7 @@ class Querier(object):
                 if '\u4e00' <= item <= '\u9fff':
                     return True
             return False
+
         buf1 = " ".join(commit1['committer']['time'].split(" ")[1:])
         if _helper(buf1) is True:
             buf1 = datetime.datetime.strptime(buf1, '%m月 %d %H:%M:%S %Y %z')
