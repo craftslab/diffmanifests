@@ -77,7 +77,7 @@ class Querier(object):
             completed = False
             next = commits.get('next', None) if backward else commits.get('previous', None)
             for item in commits['log']:
-                if item['commit'] == commit1[Repo.COMMIT]:
+                if item['commit'] == commit1[Repo.COMMIT] or item['commit'].startswith(commit1[Repo.COMMIT]):
                     completed = True
                     break
                 if (backward and self._ahead(item, commit)) \

@@ -94,6 +94,21 @@ def test_querier():
     except requests.exceptions.InvalidSchema:
         pass
 
+    try:
+        _ = querier._commits(repo, commit1, commit2, True)
+    except requests.exceptions.InvalidSchema:
+        pass
+
+    repo = 'device/common'
+    commit1 = {
+        'branch': 'master',
+        'commit': '7ffa83e'
+    }
+    commit2 = {
+        'branch': 'master',
+        'commit': '587fc20905e241750152831bc27ffe99b576a535'
+    }
+
     repo = 'device/common'
     commit1 = {
         'branch': 'master',
