@@ -1,3 +1,5 @@
 include diffmanifests/config/*.json
 include LICENSE
+include README.md
 include diff.py
+include requirements.txt

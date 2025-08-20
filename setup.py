@@ -6,11 +6,26 @@ import setuptools
 from diffmanifests.cmd.version import VERSION
 
 
-with open('README.md', 'r') as f:
+with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
-with open('requirements.txt') as f:
-    requirements = [l for l in f.read().splitlines() if l]
+# Define runtime dependencies directly
+requirements = [
+    'colorama',
+    'requests',
+    'xmltodict',
+]
+
+# Development dependencies (not needed for installation)
+dev_requirements = [
+    'coverage',
+    'coveralls',
+    'openpyxl',
+    'pytest',
+    'setuptools',
+    'twine',
+    'wheel',
+]
 
 setuptools.setup(
     author='Jia Jia',
@@ -25,6 +40,9 @@ setuptools.setup(
     entry_points={'console_scripts': ['diffmanifests=diffmanifests.main:main']},
     include_package_data=True,
     install_requires=requirements,
+    extras_require={
+        'dev': dev_requirements,
+    },
     keywords=['diff', 'manifests', 'gitiles', 'api'],
     license='Apache-2.0',
     long_description=long_description,
