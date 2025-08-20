@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build-pypi:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine wheel setuptools
+    - name: Build package
+      run: |
+        python -m build
+    - name: Check package
+      run: |
+        python -m twine check dist/*
+    - name: Upload to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        python -m twine upload dist/* --skip-existing
+
+  build-linux-binary:
+    strategy:
+      matrix:
+        ubuntu-version: ["22.04", "24.04"]
+    runs-on: ubuntu-${{ matrix.ubuntu-version }}
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    - name: Build binary
+      run: |
+        pyinstaller --onefile \
+          --name diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }} \
+          --add-data "diffmanifests/config:diffmanifests/config" \
+          --hidden-import diffmanifests.config \
+          --hidden-import diffmanifests.cmd \
+          --hidden-import diffmanifests.differ \
+          --hidden-import diffmanifests.gerrit \
+          --hidden-import diffmanifests.gitiles \
+          --hidden-import diffmanifests.logger \
+          --hidden-import diffmanifests.printer \
+          --hidden-import diffmanifests.proto \
+          --hidden-import diffmanifests.querier \
+          diffmanifests/main.py
+    - name: Test binary
+      run: |
+        ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }} --help
+    - name: Make binary executable
+      run: |
+        chmod +x ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
+        path: dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
+
+  create-release:
+    needs: [build-pypi, build-linux-binary]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          diffmanifests-linux-ubuntu18.04/diffmanifests-linux-ubuntu18.04
+          diffmanifests-linux-ubuntu22.04/diffmanifests-linux-ubuntu22.04
+        name: Release ${{ steps.get_version.outputs.VERSION }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.CRAFTSLAB_TOKEN }}

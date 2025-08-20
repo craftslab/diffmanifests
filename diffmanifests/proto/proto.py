@@ -49,6 +49,7 @@ class Commit:
     COMMITTER = 'committer'
     DATE = 'date'
     DIFF = 'diff'
+    HASHTAGS = 'hashtags'
     MESSAGE = 'message'
     REPO = 'repo'
     TOPIC = 'topic'

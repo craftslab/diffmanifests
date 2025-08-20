@@ -28,10 +28,10 @@ class Querier(object):
         def _query(commit):
             buf = self.gerrit.query('commit:' + commit, 0)
             if buf is None or len(buf) != 1:
-                return '', ''
-            return self.gerrit.url().replace('/a', '/') + str(buf[0]['_number']), buf[0].get('topic', '')
+                return '', '', []
+            return self.gerrit.url().replace('/a', '/') + str(buf[0]['_number']), buf[0].get('topic', ''), buf[0].get('hashtags', [])
 
-        change, topic = _query(commit['commit'])
+        change, topic, hashtags = _query(commit['commit'])
         return [{
             Commit.AUTHOR: '%s <%s>' % (commit['author']['name'], commit['author']['email']),
             Commit.BRANCH: branch,
@@ -40,6 +40,7 @@ class Querier(object):
             Commit.COMMITTER: '%s <%s>' % (commit['committer']['name'], commit['committer']['email']),
             Commit.DATE: commit['author']['time'],
             Commit.DIFF: label.upper(),
+            Commit.HASHTAGS: hashtags,
             Commit.MESSAGE: commit['message'].strip(),
             Commit.REPO: repo,
             Commit.TOPIC: topic,
