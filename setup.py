@@ -12,6 +12,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 # Define runtime dependencies directly
 requirements = [
     'colorama',
+    'openpyxl',
     'requests',
     'xmltodict',
 ]
@@ -20,7 +21,6 @@ requirements = [
 dev_requirements = [
     'coverage',
     'coveralls',
-    'openpyxl',
     'pytest',
     'setuptools',
     'twine',

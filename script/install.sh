@@ -49,6 +49,10 @@ pyinstaller --onefile \
   --hidden-import colorama \
   --hidden-import requests \
   --hidden-import xmltodict \
+  --hidden-import openpyxl \
+  --hidden-import openpyxl.workbook \
+  --hidden-import openpyxl.worksheet \
+  --hidden-import openpyxl.styles \
   --hidden-import json \
   --hidden-import sys \
   --hidden-import os \
