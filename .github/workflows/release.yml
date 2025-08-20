@@ -51,23 +51,13 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -e .
         pip install pyinstaller
     - name: Build binary
+      env:
+        UBUNTU_VERSION: ${{ matrix.ubuntu-version }}
       run: |
-        pyinstaller --onefile \
-          --name diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }} \
-          --add-data "diffmanifests/config:diffmanifests/config" \
-          --hidden-import diffmanifests.config \
-          --hidden-import diffmanifests.cmd \
-          --hidden-import diffmanifests.differ \
-          --hidden-import diffmanifests.gerrit \
-          --hidden-import diffmanifests.gitiles \
-          --hidden-import diffmanifests.logger \
-          --hidden-import diffmanifests.printer \
-          --hidden-import diffmanifests.proto \
-          --hidden-import diffmanifests.querier \
-          diffmanifests/main.py
+        bash script/install.sh
     - name: Test binary
       run: |
         ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }} --help
