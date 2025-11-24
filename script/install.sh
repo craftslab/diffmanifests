@@ -106,6 +106,9 @@ $PYTHON_BIN -m PyInstaller --onefile \
   --hidden-import openpyxl.workbook \
   --hidden-import openpyxl.worksheet \
   --hidden-import openpyxl.styles \
+  --hidden-import backports \
+  --hidden-import backports.tarfile \
+  --collect-submodules backports \
   --exclude-module tkinter \
   --exclude-module _tkinter \
   --exclude-module test \
