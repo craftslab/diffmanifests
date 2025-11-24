@@ -208,6 +208,213 @@ def test_hashtags_demo():
         assert True  # Test passes since this is expected in test environment
 
 
+def test_commit1_fallback_to_commit_hash():
+    """Test _commit1 fallback logic when branch query returns no commits"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'zte/vendor/zte/zte_fastmmi'
+    commit1 = {
+        'branch': 'USERTAG-PV_MU300_STESIMV1.0.0B03_202510091646',
+        'commit': '7daac874f76aaba85b687bde7e21d38082ee5ddf'
+    }
+    commit2 = {
+        'branch': 'USERTAG-PV_MU300_STESIMV1.0.0B03_202510091646',
+        'commit': 'ec5731bebfad7a44666da5b6a5deb3a2b27d9eaa'
+    }
+
+    # Mock gitiles.commits to simulate branch query returning empty, then commit hash query succeeding
+    with unittest.mock.patch.object(querier.gitiles, 'commits') as mock_commits:
+        # First call with branch returns empty log
+        # Second call with commit hash returns commits
+        # Third call checks if 7eb4bc92 exists in commit1's history
+        mock_commits.side_effect = [
+            {'log': []},  # Branch query returns empty
+            {  # Commit hash query returns results with ec5731be first (most recent)
+                'log': [
+                    {'commit': 'ec5731bebfad7a44666da5b6a5deb3a2b27d9eaa'},
+                    {'commit': '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'}
+                ]
+            },
+            {'log': []},  # Check if ec5731be exists in commit1 - no
+            {'log': [{'commit': '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'}]}  # Check if 7eb4bc92 exists in commit1 - yes
+        ]
+
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            mock_commit.side_effect = [
+                {'commit': '7daac874f76aaba85b687bde7e21d38082ee5ddf', 'committer': {'time': 'Mon Jan 01 12:00:00 2023 +0000'}},
+                {'commit': '7eb4bc92a52ec944badf96a7192d884eb04e9c4c', 'committer': {'time': 'Mon Jan 01 11:00:00 2023 +0000'}}
+            ]
+
+            result, label = querier._commit1(repo, commit1, commit2)
+
+            # Should find the common commit using fallback
+            assert result is not None
+            assert result['commit'] == '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'
+            # Verify that commits was called multiple times (first with branch, then with commit hash, then checking common)
+            assert mock_commits.call_count >= 2
+
+
+def test_commit1_both_branch_and_hash_fail():
+    """Test _commit1 when both branch and commit hash queries fail"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'test/repo'
+    commit1 = {
+        'branch': 'test-branch',
+        'commit': 'commit1hash'
+    }
+    commit2 = {
+        'branch': 'test-branch',
+        'commit': 'commit2hash'
+    }
+
+    # Mock gitiles.commits to return empty for both branch and commit hash
+    with unittest.mock.patch.object(querier.gitiles, 'commits') as mock_commits:
+        mock_commits.side_effect = [
+            {'log': []},  # Branch query returns empty
+            {'log': []}   # Commit hash query also returns empty
+        ]
+
+        result, label = querier._commit1(repo, commit1, commit2)
+
+        # Should return None when both fail
+        assert result is None
+        assert label == ''
+
+
+def test_diff_fallback_with_commit_hash_branch():
+    """Test _diff fallback logic when _commits fails with branch but succeeds with commit hash"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'test/repo'
+    commit1 = {
+        'branch': 'test-branch',
+        'commit': 'commit1hash'
+    }
+    commit2 = {
+        'branch': 'test-branch',
+        'commit': 'commit2hash'
+    }
+
+    # Mock _commit1 to return a common commit
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (
+            {'branch': 'test-branch', 'commit': 'commonhash'},
+            Label.ADD_COMMIT
+        )
+
+        # Mock _commits to fail first, then succeed with commit hash, and handle the third call
+        with unittest.mock.patch.object(querier, '_commits') as mock_commits:
+            mock_commits.side_effect = [
+                ([], False),  # First call with branch fails
+                ([  # Second call with commit hash succeeds
+                    {
+                        'commit': 'commit2hash',
+                        'author': {'name': 'Test', 'email': 'test@example.com', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                        'committer': {'name': 'Test', 'email': 'test@example.com', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                        'message': 'Test commit'
+                    }
+                ], True),
+                ([], True)  # Third call for commit1 to common commit
+            ]
+
+            with unittest.mock.patch.object(querier, '_build') as mock_build:
+                mock_build.return_value = [{'commit': 'commit2hash', 'diff': 'ADD COMMIT'}]
+
+                result = querier._diff(repo, commit1, commit2)
+
+                # Should succeed using fallback
+                assert len(result) >= 1
+                # Verify _commits was called at least twice (once with branch, once with commit hash)
+                assert mock_commits.call_count >= 2
+
+
+def test_diff_no_common_commit_fallback():
+    """Test _diff fallback when no common commit is found"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'test/repo'
+    commit1 = {
+        'branch': 'test-branch',
+        'commit': 'commit1hash'
+    }
+    commit2 = {
+        'branch': 'test-branch',
+        'commit': 'commit2hash'
+    }
+
+    # Mock _commit1 to return None (no common commit found)
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (None, '')
+
+        # Mock gitiles.commit to return commit data
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            mock_commit.return_value = {
+                'commit': 'commit2hash',
+                'author': {'name': 'Test', 'email': 'test@example.com', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                'committer': {'name': 'Test', 'email': 'test@example.com', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                'message': 'Test commit'
+            }
+
+            with unittest.mock.patch.object(querier, '_build') as mock_build:
+                mock_build.return_value = [{'commit': 'commit2hash', 'diff': 'ADD COMMIT'}]
+
+                result = querier._diff(repo, commit1, commit2)
+
+                # Should return result from fallback
+                assert len(result) == 1
+                assert result[0]['commit'] == 'commit2hash'
+                # Verify _build was called with commit2 as ADD_COMMIT
+                mock_build.assert_called_once()
+
+
+def test_commit1_with_iteration_limit():
+    """Test _commit1 respects iteration limit"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'test/repo'
+    commit1 = {
+        'branch': 'test-branch',
+        'commit': 'commit1hash'
+    }
+    commit2 = {
+        'branch': 'test-branch',
+        'commit': 'commit2hash'
+    }
+
+    # Mock gitiles.commits to always return next page (infinite pagination)
+    call_count = 0
+    def mock_commits_infinite(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        # Return different commits each time to avoid finding common commit
+        return {
+            'log': [{'commit': f'somecommithash{call_count}'}],
+            'next': f'nextpage{call_count}'
+        }
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits', side_effect=mock_commits_infinite):
+        # Mock the inner commits call to always return empty (no common commit found)
+        original_commits = querier.gitiles.commits
+        def selective_mock(*args, **kwargs):
+            # If checking if a commit exists in commit1's history, return empty
+            if len(args) >= 3 and args[1] == 'commit1hash':
+                return {'log': []}
+            return original_commits(*args, **kwargs)
+
+        with unittest.mock.patch.object(querier.gitiles, 'commits', side_effect=selective_mock):
+            result, label = querier._commit1(repo, commit1, commit2)
+
+            # Should return None after hitting iteration limit
+            assert result is None
+            assert label == ''
+
+
 def test_querier():
     try:
         _ = Querier(None)

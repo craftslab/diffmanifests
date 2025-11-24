@@ -106,13 +106,25 @@ class Querier(object):
         return buf, status
 
     def _commit1(self, repo, commit1, commit2):
+        # Try to get commits from commit2's history using the branch
         commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
-        if commits is None:
-            return None, ''
-        while True:
+        if commits is None or len(commits.get('log', [])) == 0:
+            # Fallback: try using commit hash directly instead of branch
+            commits = self.gitiles.commits(repo, commit2[Repo.COMMIT], commit2[Repo.COMMIT])
+            if commits is None or len(commits.get('log', [])) == 0:
+                Logger.warn('_commit1: Failed to get commits for repo: %s with both branch and commit hash' % repo)
+                return None, ''
+
+        iterations = 0
+        max_iterations = 100  # Prevent infinite loops
+        checked_commits = []
+        while iterations < max_iterations:
+            iterations += 1
             commit = None
             for item in commits.get('log', []):
-                data = self.gitiles.commits(repo, commit1[Repo.BRANCH], item['commit'])
+                checked_commits.append(item['commit'][:8])  # Store first 8 chars for logging
+                # Check if this commit exists in commit1's history by querying from commit1
+                data = self.gitiles.commits(repo, commit1[Repo.COMMIT], item['commit'])
                 if data is not None and len(data['log']) != 0:
                     commit = {
                         Repo.BRANCH: commit1[Repo.BRANCH],
@@ -123,8 +135,16 @@ class Querier(object):
                 break
             data = commits.get('next', None)
             if data is None:
+                Logger.warn('_commit1: No more commits to check (pagination ended) for repo: %s after %d iterations (checked: %s)' % (repo, iterations, ', '.join(checked_commits)))
                 break
             commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], data)
+            if commits is None:
+                Logger.warn('_commit1: Failed to get next page of commits for repo: %s' % repo)
+                break
+
+        if iterations >= max_iterations:
+            Logger.warn('_commit1: Reached max iterations (%d) for repo: %s' % (max_iterations, repo))
+
         if commit is None:
             return None, ''
         data1 = self.gitiles.commit(repo, commit1[Repo.COMMIT])
@@ -141,10 +161,25 @@ class Querier(object):
         buf = []
         commit, label = self._commit1(repo, commit1, commit2)
         if commit is None:
-            return []
+            Logger.warn('Failed to find common commit for repo: %s (commit1: %s, commit2: %s), treating as independent commits' % (repo, commit1[Repo.COMMIT], commit2[Repo.COMMIT]))
+            # Fallback: treat commit2 as an added commit and commit1 as context
+            data2 = self.gitiles.commit(repo, commit2[Repo.COMMIT])
+            if data2 is not None:
+                buf.extend(self._build(repo, commit2[Repo.BRANCH], data2, Label.ADD_COMMIT))
+            return buf
+
+        # Try with branch first, if it fails, use commit hash
         commits, status = self._commits(repo, commit, commit2, True)
         if status is False:
-            return []
+            # Retry with commit hash as branch
+            commit2_with_hash_branch = {
+                Repo.BRANCH: commit2[Repo.COMMIT],
+                Repo.COMMIT: commit2[Repo.COMMIT]
+            }
+            commits, status = self._commits(repo, commit, commit2_with_hash_branch, True)
+            if status is False:
+                Logger.warn('Failed to get commits between common commit and commit2 for repo: %s (tried both branch and commit hash)' % repo)
+                return []
         for item in commits:
             buf.extend(self._build(repo, commit2[Repo.BRANCH], item, Label.ADD_COMMIT))
         if commit[Repo.COMMIT] != commit1[Repo.COMMIT]:
@@ -153,6 +188,7 @@ class Querier(object):
             else:
                 commits, status = self._commits(repo, commit, commit1, True)
             if status is False:
+                Logger.warn('Failed to get commits between commit1 and common commit for repo: %s' % repo)
                 return []
             for item in commits:
                 buf.extend(self._build(repo, commit1[Repo.BRANCH], item, label))
