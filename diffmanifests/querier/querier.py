@@ -24,10 +24,6 @@ class Querier(object):
         self.gerrit = Gerrit(config)
         self.gitiles = Gitiles(config)
 
-    def _is_merge_commit(self, commit):
-        """Check if a commit is a merge commit (has multiple parents)"""
-        return 'parents' in commit and len(commit.get('parents', [])) > 1
-
     def _build(self, repo, branch, commit, label):
         def _query(commit):
             buf = self.gerrit.query('commit:' + commit, 0)
@@ -36,11 +32,6 @@ class Querier(object):
             return self.gerrit.url().replace('/a', '/') + str(buf[0]['_number']), buf[0].get('topic', ''), buf[0].get('hashtags', [])
 
         change, topic, hashtags = _query(commit['commit'])
-        # Mark merge commits in the diff label
-        diff_label = label.upper()
-        if self._is_merge_commit(commit):
-            diff_label = diff_label + ' (MERGE)'
-
         return [{
             Commit.AUTHOR: '%s <%s>' % (commit['author']['name'], commit['author']['email']),
             Commit.BRANCH: branch,
@@ -48,7 +39,7 @@ class Querier(object):
             Commit.COMMIT: commit['commit'],
             Commit.COMMITTER: '%s <%s>' % (commit['committer']['name'], commit['committer']['email']),
             Commit.DATE: commit['author']['time'],
-            Commit.DIFF: diff_label,
+            Commit.DIFF: label.upper(),
             Commit.HASHTAGS: hashtags,
             Commit.MESSAGE: commit['message'].strip(),
             Commit.REPO: repo,
@@ -147,27 +138,15 @@ class Querier(object):
         return commit, label
 
     def _diff(self, repo, commit1, commit2):
-        """
-        Compare two commits and return the differences.
-        """
         buf = []
         commit, label = self._commit1(repo, commit1, commit2)
         if commit is None:
             return []
-
-        # Get commits from common ancestor to commit2
         commits, status = self._commits(repo, commit, commit2, True)
         if status is False:
             return []
-
-        # Process commits on commit2's branch
         for item in commits:
-            # Check if this is a merge commit (Scenario D)
-            if self._is_merge_commit(item):
-                Logger.info('Merge commit detected: %s in repo: %s' % (item['commit'], repo))
             buf.extend(self._build(repo, commit2[Repo.BRANCH], item, Label.ADD_COMMIT))
-
-        # Handle commits unique to commit1's branch
         if commit[Repo.COMMIT] != commit1[Repo.COMMIT]:
             if label == Label.ADD_COMMIT:
                 commits, status = self._commits(repo, commit1, commit, True)
@@ -176,9 +155,6 @@ class Querier(object):
             if status is False:
                 return []
             for item in commits:
-                # Check for merge commits on commit1's branch too
-                if self._is_merge_commit(item):
-                    Logger.info('Merge commit detected: %s in repo: %s' % (item['commit'], repo))
                 buf.extend(self._build(repo, commit1[Repo.BRANCH], item, label))
         return buf
 
