@@ -48,22 +48,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install pyinstaller
-    - name: Build binary
+    - name: Build binary using install script
       env:
         UBUNTU_VERSION: ${{ matrix.ubuntu-version }}
       run: |
         bash script/install.sh
+    - name: Verify binary
+      run: |
+        ls -lh ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
+        file ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
     - name: Test binary
       run: |
         ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }} --help
-    - name: Make binary executable
-      run: |
-        chmod +x ./dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
