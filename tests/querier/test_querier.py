@@ -439,3 +439,56 @@ def test_querier():
 
     if buf is not None:
         pprint.pprint(buf)
+
+
+def test_merge_commit_detection():
+    """Test Scenario D: Detection of merge commits"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    # Test commit without parents (regular commit)
+    regular_commit = {
+        'author': {
+            'email': 'dev@example.com',
+            'name': 'Developer',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'commit': 'abc123def456',
+        'committer': {
+            'email': 'dev@example.com',
+            'name': 'Developer',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'message': 'Regular commit',
+        'parents': ['parent123']
+    }
+
+    # Test merge commit with multiple parents
+    merge_commit = {
+        'author': {
+            'email': 'dev@example.com',
+            'name': 'Developer',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'commit': 'merge456abc789',
+        'committer': {
+            'email': 'dev@example.com',
+            'name': 'Developer',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'message': 'Merge branch feature into master',
+        'parents': ['parent1', 'parent2']
+    }
+
+    # Test detection
+    assert querier._is_merge_commit(regular_commit) is False
+    assert querier._is_merge_commit(merge_commit) is True
+
+    # Test commit without parents field
+    commit_no_parents = {
+        'commit': 'xyz789',
+        'message': 'Initial commit'
+    }
+    assert querier._is_merge_commit(commit_no_parents) is False
+
+    print("✓ Scenario D merge commit detection test passed")

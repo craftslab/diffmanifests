@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote  name="aosp" fetch=".." review="https://android-review.googlesource.com/" />
+  <default revision="refs/tags/android-10.0.0_r28" remote="aosp" sync-j="4" />
+  <project path="device/common" name="device/common" groups="pdk-cw-fs,pdk" revision="m1n2o3p4q5r6s7t8u9v0" upstream="refs/heads/dev-branch" />
+  <project path="build/make" name="platform/build" groups="pdk" revision="1a2b3c4d5e6f7g8h9i0j" >
+    <copyfile src="core/root.mk" dest="Makefile" />
+    <linkfile src="CleanSpec.mk" dest="build/CleanSpec.mk" />
+    <linkfile src="buildspec.mk.default" dest="build/buildspec.mk.default" />
+    <linkfile src="core" dest="build/core" />
+    <linkfile src="envsetup.sh" dest="build/envsetup.sh" />
+    <linkfile src="target" dest="build/target" />
+    <linkfile src="tools" dest="build/tools" />
+  </project>
+  <project path="build/blueprint" name="platform/build/blueprint" groups="pdk,tradefed" revision="x1y2z3a4b5c6d7e8f9g0" upstream="refs/heads/dev-branch" />
+  <project path="build/kati" name="platform/build/kati" groups="pdk,tradefed" revision="c1d2e3f4g5h6i7j8k9l0" />
+</manifest>

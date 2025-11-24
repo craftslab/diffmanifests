@@ -71,9 +71,43 @@ An example of configuration in [config.json](https://github.com/craftslab/diffma
 
 ### 📊 Manifest Comparison
 
-Compare commit 2 with commit 1 in diagram A/B/C to identify changes between manifest versions.
+Compare commit 2 with commit 1 in diagram A/B/C/D to identify changes between manifest versions.
 
 ![branch](branch.png)
+
+**Supported Scenarios:**
+
+- **Scenario A**: Linear commit history on a single branch
+- **Scenario B**: Branch divergence with commits on side branch
+- **Scenario C**: Branch divergence with different commit positions
+- **Scenario D**: Cross-branch merges with merge commits detection
+  - Automatically detects merge commits (commits with multiple parents)
+  - Tracks commits that are merged from one branch to another
+  - Labels merge commits with "(MERGE)" suffix in diff output
+  - Handles complex branching and merging workflows
+
+**Example Output for Scenario D (Merge Commits):**
+
+When comparing manifests with merge commits, the output will clearly identify them:
+
+```json
+{
+  "author": "Automerger Merge Worker <automerger@example.com>",
+  "branch": "master",
+  "change": "https://gerrit.example.com/c/12345",
+  "commit": "abc123def456789...",
+  "committer": "Automerger Merge Worker <automerger@example.com>",
+  "date": "2025-08-20 12:00:00 +0000",
+  "diff": "ADD COMMIT (MERGE)",
+  "hashtags": ["merge", "automerge"],
+  "message": "Merge branch 'feature' into master",
+  "repo": "platform/frameworks/base",
+  "topic": "feature-integration",
+  "url": "https://android.googlesource.com/platform/frameworks/base/+/abc123def456789"
+}
+```
+
+Notice the `"diff": "ADD COMMIT (MERGE)"` field which indicates this is a merge commit, helping you track cross-branch integrations.
 
 
 
