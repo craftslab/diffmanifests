@@ -1,96 +1,195 @@
-# diffmanifests
+<div align="center">
+
+# 📋 diffmanifests
+
+**A powerful tool for deep manifest comparison via Gerrit & Gitiles API**
+
+[English](README.md) | [简体中文](README_cn.md)
 
 [![PyPI](https://img.shields.io/pypi/v/diffmanifests.svg?color=brightgreen)](https://pypi.org/project/diffmanifests/)
 [![Coverage Status](https://coveralls.io/repos/github/craftslab/diffmanifests/badge.svg?branch=master)](https://coveralls.io/github/craftslab/diffmanifests?branch=master)
 [![License](https://img.shields.io/github/license/craftslab/diffmanifests.svg?color=brightgreen)](https://github.com/craftslab/diffmanifests/blob/master/LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 
+</div>
 
+---
 
-*diffmanifests* is a tool used to see deeper differences between manifests via Gerrit & Gitiles API.
+## 🌟 Overview
 
+**diffmanifests** is a sophisticated CLI tool designed to reveal deeper differences between manifest files by leveraging the Gerrit and Gitiles APIs. It provides comprehensive change tracking, hashtag support, and detailed commit analysis for efficient manifest version management.
 
+### ✨ Key Highlights
 
-## Requirement
+- 🔍 **Deep Comparison**: Analyze differences between manifest versions with precision
+- 🏷️ **Hashtag Integration**: Full support for Gerrit hashtags and categorization
+- 📊 **Visual Reporting**: Generate detailed JSON reports with comprehensive commit information
+- 🔄 **API-Powered**: Seamlessly integrates with Gerrit and Gitiles REST APIs
+- ⚡ **Easy to Use**: Simple command-line interface with clear configuration
 
-- Python >= 3.7
+---
 
+## 📋 Table of Contents
 
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Configuration](#-configuration)
+- [Features](#-features)
+- [Output Format](#-output-format)
+- [Examples](#-examples)
+- [Development](#-development)
+- [License](#-license)
+- [References](#-references)
 
-## Install
+---
+
+## 🔧 Requirements
+
+- **Python**: >= 3.7
+- **Dependencies**:
+  - `colorama` - Terminal color output
+  - `openpyxl` - Excel file handling
+  - `requests` - HTTP library
+  - `xmltodict` - XML parsing
+
+---
+
+## 📦 Installation
+
+### Install from PyPI
 
 ```bash
 pip install diffmanifests
 ```
 
-
-
-## Update
+### Upgrade to Latest Version
 
 ```bash
 pip install diffmanifests --upgrade
 ```
 
-
-
-## Run
+### Install from Source
 
 ```bash
-diffmanifests --config-file config.json --manifest1-file manifest1.xml --manifest2-file manifest2.xml --output-file output.json
+git clone https://github.com/craftslab/diffmanifests.git
+cd diffmanifests
+pip install -e .
 ```
 
+---
 
+## 🚀 Quick Start
 
-## Settings
+### Basic Usage
 
-*Diff Manifests* parameters can be set in the directory [config](https://github.com/craftslab/diffmanifests/blob/master/diffmanifests/config).
+```bash
+diffmanifests \
+  --config-file config.json \
+  --manifest1-file manifest1.xml \
+  --manifest2-file manifest2.xml \
+  --output-file output.json
+```
 
-An example of configuration in [config.json](https://github.com/craftslab/diffmanifests/blob/master/diffmanifests/config/config.json):
+### Command Line Arguments
+
+| Argument | Description | Required |
+|----------|-------------|----------|
+| `--config-file` | Path to configuration JSON file | ✅ |
+| `--manifest1-file` | Path to first manifest XML file (older version) | ✅ |
+| `--manifest2-file` | Path to second manifest XML file (newer version) | ✅ |
+| `--output-file` | Path to output JSON file for results | ✅ |
+
+---
+
+## ⚙️ Configuration
+
+Configuration parameters can be set in a JSON file. See the [config directory](https://github.com/craftslab/diffmanifests/blob/master/diffmanifests/config) for examples.
+
+### Configuration Structure
+
+Create a `config.json` file with the following structure:
 
 ```json
 {
   "gerrit": {
-    "pass": "pass",
-    "url": "http://localhost:80",
-    "user": "user"
+    "url": "https://your-gerrit-instance.com",
+    "user": "your-username",
+    "pass": "your-password-or-token"
   },
   "gitiles": {
-    "pass": "pass",
-    "retry": 1,
-    "timeout": -1,
-    "url": "http://localhost:80",
-    "user": "user"
+    "url": "https://your-gitiles-instance.com",
+    "user": "your-username",
+    "pass": "your-password-or-token",
+    "retry": 3,
+    "timeout": 30
   }
 }
 ```
 
+### Configuration Parameters
 
+#### Gerrit Settings
 
-## Features
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | string | Gerrit instance URL |
+| `user` | string | Authentication username |
+| `pass` | string | Authentication password or API token |
 
-*Diff Manifests* supports the following capabilities:
+#### Gitiles Settings
+
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `url` | string | Gitiles instance URL | - |
+| `user` | string | Authentication username | - |
+| `pass` | string | Authentication password or API token | - |
+| `retry` | integer | Number of retry attempts for failed requests | 1 |
+| `timeout` | integer | Request timeout in seconds (-1 for no timeout) | -1 |
+
+---
+
+## 🎯 Features
 
 ### 📊 Manifest Comparison
 
-Compare commit 2 with commit 1 in diagram A/B/C to identify changes between manifest versions.
+Compare two manifest versions to identify changes between commits. The tool analyzes differences using a three-way comparison model:
 
 ![branch](branch.png)
 
+**Comparison Logic**:
+- **Diagram A**: Changes from commit 1 to commit 2
+- **Diagram B**: Alternative change paths
+- **Diagram C**: Merge scenarios
 
+### 🏷️ Hashtag Support
 
-### 🏷️ Hashtags Support
+Comprehensive support for Gerrit hashtags through REST API v3.12.1, enabling better change tracking and categorization.
 
-The tool includes comprehensive support for querying changes with hashtags from the Gerrit REST API v3.12.1. This feature enhances change tracking and categorization.
+#### Key Benefits
 
-**Key Benefits:**
+✅ **Automatic hashtag extraction** from Gerrit changes
+✅ **Enhanced categorization** and filtering capabilities
+✅ **Seamless Gerrit workflow** integration
+✅ **Graceful fallback** for changes without hashtags
 
-- Automatic hashtag extraction from Gerrit changes
-- Enhanced change categorization and filtering
-- Better integration with Gerrit workflows
-- Graceful fallback for changes without hashtags
+#### Use Cases
 
-**Output Structure:**
+| Hashtags | Use Case |
+|----------|----------|
+| `["feature", "ui", "enhancement"]` | New UI features |
+| `["bugfix", "critical"]` | Critical bug fixes |
+| `["security", "cve"]` | Security-related changes |
+| `["refactor", "cleanup"]` | Code refactoring |
+| `[]` | Changes without hashtags |
 
-Each commit in the output JSON now includes a `hashtags` field containing an array of hashtags:
+---
+
+## 📄 Output Format
+
+The tool generates a JSON file with detailed information about each changed commit.
+
+### Output Structure
 
 ```json
 {
@@ -109,27 +208,175 @@ Each commit in the output JSON now includes a `hashtags` field containing an arr
 }
 ```
 
-**Examples of hashtag usage:**
+### Output Fields
 
-- `["feature", "ui", "enhancement"]` - New UI features
-- `["bugfix", "critical"]` - Critical bug fixes
-- `["security", "cve"]` - Security-related changes
-- `[]` - Changes without hashtags (empty array)
+| Field | Type | Description |
+|-------|------|-------------|
+| `author` | string | Original commit author |
+| `branch` | string | Target branch name |
+| `change` | string | Gerrit change URL |
+| `commit` | string | Git commit SHA |
+| `committer` | string | Person who committed the change |
+| `date` | string | Commit timestamp |
+| `diff` | string | Type of change (ADD COMMIT, REMOVE COMMIT, etc.) |
+| `hashtags` | array | List of associated hashtags |
+| `message` | string | Commit message |
+| `repo` | string | Repository path |
+| `topic` | string | Gerrit topic name |
+| `url` | string | Gitiles commit URL |
 
-**Technical Details:**
+---
 
-- Hashtags are retrieved using the [Gerrit REST API ChangeInfo entity](https://gerrit-documentation.storage.googleapis.com/Documentation/3.12.1/rest-api-changes.html#change-info)
-- Automatic error handling ensures stable operation even when hashtags are unavailable
-- Backward compatibility maintained for existing workflows
+## 💡 Examples
 
+### Example 1: Basic Comparison
 
+```bash
+diffmanifests \
+  --config-file ./config/config.json \
+  --manifest1-file ./data/android-11.xml \
+  --manifest2-file ./data/android-12.xml \
+  --output-file ./results/diff-output.json
+```
 
-## License
+### Example 2: With Custom Configuration
 
-Project License can be found [here](https://github.com/craftslab/diffmanifests/blob/master/LICENSE).
+```bash
+# config.json
+{
+  "gerrit": {
+    "url": "https://android-review.googlesource.com",
+    "user": "developer",
+    "pass": "your-token"
+  },
+  "gitiles": {
+    "url": "https://android.googlesource.com",
+    "user": "developer",
+    "pass": "your-token",
+    "retry": 5,
+    "timeout": 60
+  }
+}
 
+# Run comparison
+diffmanifests \
+  --config-file config.json \
+  --manifest1-file old-manifest.xml \
+  --manifest2-file new-manifest.xml \
+  --output-file changes.json
+```
 
+### Example 3: Analyzing Output
 
-## Reference
+```python
+import json
 
-[git-repo/subcmds/diffmanifests](https://gerrit.googlesource.com/git-repo/+/master/subcmds/diffmanifests.py)
+# Load the output
+with open('output.json', 'r') as f:
+    changes = json.load(f)
+
+# Filter security-related changes
+security_changes = [
+    c for c in changes
+    if 'security' in c.get('hashtags', []) or 'cve' in c.get('hashtags', [])
+]
+
+print(f"Found {len(security_changes)} security-related changes")
+```
+
+---
+
+## 🛠️ Development
+
+### Setting Up Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/craftslab/diffmanifests.git
+cd diffmanifests
+
+# Install development dependencies
+pip install -e .[dev]
+
+# Run tests
+pytest tests/
+
+# Run tests with coverage
+coverage run -m pytest tests/
+coverage report
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test module
+pytest tests/differ/test_differ.py
+
+# Run with verbose output
+pytest -v
+
+# Run with coverage report
+pytest --cov=diffmanifests tests/
+```
+
+### Project Scripts
+
+Located in the `script/` directory:
+
+- `clean.sh` - Clean build artifacts and cache files
+- `dist.sh` - Build distribution packages
+- `install.sh` - Install the package locally
+- `run.sh` - Run the tool with test data
+- `test.sh` - Execute test suite
+
+---
+
+## 📜 License
+
+This project is licensed under the **Apache License 2.0**.
+
+See [LICENSE](https://github.com/craftslab/diffmanifests/blob/master/LICENSE) for full details.
+
+---
+
+## 📚 References
+
+- [Gerrit REST API Documentation](https://gerrit-documentation.storage.googleapis.com/Documentation/3.12.1/rest-api.html)
+- [Gerrit ChangeInfo Entity](https://gerrit-documentation.storage.googleapis.com/Documentation/3.12.1/rest-api-changes.html#change-info)
+- [git-repo/subcmds/diffmanifests](https://gerrit.googlesource.com/git-repo/+/master/subcmds/diffmanifests.py)
+- [Gitiles API Documentation](https://gerrit.googlesource.com/gitiles/+/master/Documentation/design.md)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### How to Contribute
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/craftslab/diffmanifests/issues)
+- **Email**: angersax@sina.com
+- **PyPI**: [diffmanifests on PyPI](https://pypi.org/project/diffmanifests/)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [craftslab](https://github.com/craftslab)**
+
+⭐ Star this repository if you find it helpful!
+
+</div>
