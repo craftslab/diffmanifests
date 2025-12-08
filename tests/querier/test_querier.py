@@ -15,6 +15,360 @@ def test_exception():
     assert str(exception) == 'exception'
 
 
+def test_gerrit_url_format_googlesource():
+    """Test Gerrit URL format for googlesource.com instances"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'platform/frameworks/base'
+    branch = 'master'
+    commit = {
+        'author': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'commit': 'abc123def456',
+        'committer': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = [{
+            '_number': 1234567,
+            'topic': 'test',
+            'hashtags': []
+        }]
+
+        with unittest.mock.patch.object(querier.gerrit, 'url') as mock_gerrit_url:
+            mock_gerrit_url.return_value = 'https://android-review.googlesource.com'
+
+            with unittest.mock.patch.object(querier.gitiles, 'url') as mock_gitiles_url:
+                mock_gitiles_url.return_value = 'https://android.googlesource.com'
+
+                result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+                # Verify Google Gerrit URL format
+                assert result[0][Commit.CHANGE] == 'https://android-review.googlesource.com/1234567'
+
+
+def test_gerrit_url_format_self_hosted():
+    """Test Gerrit URL format for self-hosted instances"""
+    config = {
+        'gerrit': {
+            'url': 'http://47.88.100.1:8080',
+            'user': '',
+            'pass': '',
+            'query': {'option': ['CURRENT_REVISION']}
+        },
+        'gitiles': {
+            'url': 'http://47.88.100.1:8080',
+            'user': '',
+            'pass': '',
+            'retry': 1,
+            'timeout': -1
+        }
+    }
+    querier = Querier(config)
+
+    repo = 'gerrit-coder'
+    branch = 'master'
+    commit = {
+        'author': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'commit': 'abc123def456',
+        'committer': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = [{
+            '_number': 1,
+            'topic': 'test',
+            'hashtags': []
+        }]
+
+        with unittest.mock.patch.object(querier.gerrit, 'url') as mock_gerrit_url:
+            mock_gerrit_url.return_value = 'http://47.88.100.1:8080'
+
+            with unittest.mock.patch.object(querier.gitiles, 'url') as mock_gitiles_url:
+                mock_gitiles_url.return_value = 'http://47.88.100.1:8080'
+
+                result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+                # Verify self-hosted Gerrit URL format with /c/ prefix
+                assert result[0][Commit.CHANGE] == 'http://47.88.100.1:8080/c/gerrit-coder/+/1'
+
+
+def test_gerrit_url_format_self_hosted_with_auth():
+    """Test Gerrit URL format for self-hosted instances with authentication"""
+    config = {
+        'gerrit': {
+            'url': 'http://47.88.100.1:8080',
+            'user': 'admin',
+            'pass': 'secret',
+            'query': {'option': ['CURRENT_REVISION']}
+        },
+        'gitiles': {
+            'url': 'http://47.88.100.1:8080',
+            'user': 'admin',
+            'pass': 'secret',
+            'retry': 1,
+            'timeout': -1
+        }
+    }
+    querier = Querier(config)
+
+    repo = 'gerrit-coder'
+    branch = 'master'
+    commit = {
+        'author': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'commit': 'abc123def456',
+        'committer': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = [{
+            '_number': 1,
+            'topic': 'test',
+            'hashtags': []
+        }]
+
+        with unittest.mock.patch.object(querier.gerrit, 'url') as mock_gerrit_url:
+            # With authentication, Gerrit URL has /a suffix
+            mock_gerrit_url.return_value = 'http://47.88.100.1:8080/a'
+
+            with unittest.mock.patch.object(querier.gitiles, 'url') as mock_gitiles_url:
+                mock_gitiles_url.return_value = 'http://47.88.100.1:8080'
+
+                result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+                # Verify self-hosted Gerrit URL format with /c/ prefix (should remove /a)
+                assert result[0][Commit.CHANGE] == 'http://47.88.100.1:8080/c/gerrit-coder/+/1'
+
+
+def test_gerrit_url_format_different_ports():
+    """Test Gerrit URL format with different port numbers"""
+    for port in [8080, 8081, 9090]:
+        config = {
+            'gerrit': {
+                'url': f'http://192.168.1.100:{port}',
+                'user': '',
+                'pass': '',
+                'query': {'option': ['CURRENT_REVISION']}
+            },
+            'gitiles': {
+                'url': f'http://192.168.1.100:{port}',
+                'user': '',
+                'pass': '',
+                'retry': 1,
+                'timeout': -1
+            }
+        }
+        querier = Querier(config)
+
+        repo = 'my-project'
+        branch = 'main'
+        commit = {
+            'author': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+            'commit': 'abc123',
+            'committer': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+            'message': 'Test'
+        }
+
+        with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+            mock_query.return_value = [{'_number': 42, 'topic': '', 'hashtags': []}]
+
+            with unittest.mock.patch.object(querier.gerrit, 'url') as mock_gerrit_url:
+                mock_gerrit_url.return_value = f'http://192.168.1.100:{port}'
+
+                with unittest.mock.patch.object(querier.gitiles, 'url') as mock_gitiles_url:
+                    mock_gitiles_url.return_value = f'http://192.168.1.100:{port}'
+
+                    result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+                    expected_url = f'http://192.168.1.100:{port}/c/my-project/+/42'
+                    assert result[0][Commit.CHANGE] == expected_url
+
+
+def test_gitiles_url_format_standard():
+    """Test gitiles URL format for standard URL (googlesource.com)"""
+    config = {
+        'gerrit': {
+            'url': 'https://android-review.googlesource.com',
+            'user': '',
+            'pass': '',
+            'query': {'option': ['CURRENT_REVISION']}
+        },
+        'gitiles': {
+            'url': 'https://android.googlesource.com',
+            'user': '',
+            'pass': '',
+            'retry': 1,
+            'timeout': -1
+        }
+    }
+    querier = Querier(config)
+
+    repo = 'platform/build'
+    branch = 'master'
+    commit = {
+        'author': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'commit': 'abc123def456',
+        'committer': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = [{'_number': 1234567, 'topic': '', 'hashtags': []}]
+
+        result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+        # Gitiles URL should be: https://android.googlesource.com/platform/build/+/abc123def456
+        expected_gitiles_url = 'https://android.googlesource.com/platform/build/+/abc123def456'
+        assert result[0][Commit.URL] == expected_gitiles_url
+
+
+def test_gitiles_url_format_with_plugins():
+    """Test gitiles URL format when gitiles URL has /plugins/gitiles path"""
+    config = {
+        'gerrit': {
+            'url': 'http://47.88.100.1:8080',
+            'user': '',
+            'pass': '',
+            'query': {'option': ['CURRENT_REVISION']}
+        },
+        'gitiles': {
+            'url': 'http://47.88.100.1:8080/plugins/gitiles',
+            'user': '',
+            'pass': '',
+            'retry': 1,
+            'timeout': -1
+        }
+    }
+    querier = Querier(config)
+
+    repo = 'gerrit-coder'
+    branch = 'master'
+    commit = {
+        'author': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'commit': '0043de87bf2b46d5f045caa9ea5646252d1f0553',
+        'committer': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = [{'_number': 1, 'topic': '', 'hashtags': []}]
+
+        result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+        # Gitiles URL should be: http://47.88.100.1:8080/plugins/gitiles/gerrit-coder/+/0043de87bf2b46d5f045caa9ea5646252d1f0553
+        expected_gitiles_url = 'http://47.88.100.1:8080/plugins/gitiles/gerrit-coder/+/0043de87bf2b46d5f045caa9ea5646252d1f0553'
+        assert result[0][Commit.URL] == expected_gitiles_url
+
+
+def test_gitiles_url_format_with_trailing_slash():
+    """Test gitiles URL format handles trailing slash correctly"""
+    config = {
+        'gerrit': {
+            'url': 'http://10.0.0.1:8080',
+            'user': '',
+            'pass': '',
+            'query': {'option': ['CURRENT_REVISION']}
+        },
+        'gitiles': {
+            'url': 'http://10.0.0.1:8080/plugins/gitiles/',  # with trailing slash
+            'user': '',
+            'pass': '',
+            'retry': 1,
+            'timeout': -1
+        }
+    }
+    querier = Querier(config)
+
+    repo = 'my-project'
+    branch = 'master'
+    commit = {
+        'author': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'commit': 'def456abc789',
+        'committer': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = [{'_number': 99, 'topic': '', 'hashtags': []}]
+
+        result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+        # URL should not have double slashes: http://10.0.0.1:8080/plugins/gitiles/my-project/+/def456abc789
+        expected_gitiles_url = 'http://10.0.0.1:8080/plugins/gitiles/my-project/+/def456abc789'
+        assert result[0][Commit.URL] == expected_gitiles_url
+        # Ensure no double slashes
+        assert '//' not in expected_gitiles_url.replace('http://', '')
+
+
+def test_gitiles_url_format_different_paths():
+    """Test gitiles URL format with various path configurations"""
+    test_cases = [
+        ('http://gerrit.example.com', 'project-a', 'abc123', 'http://gerrit.example.com/project-a/+/abc123'),
+        ('http://gerrit.example.com/git', 'project-b', 'def456', 'http://gerrit.example.com/git/project-b/+/def456'),
+        ('http://192.168.1.1:8080/plugins/gitiles', 'project-c', 'ghi789', 'http://192.168.1.1:8080/plugins/gitiles/project-c/+/ghi789'),
+    ]
+
+    for gitiles_url, repo, commit_hash, expected_url in test_cases:
+        config = {
+            'gerrit': {
+                'url': 'http://gerrit.example.com',
+                'user': '',
+                'pass': '',
+                'query': {'option': ['CURRENT_REVISION']}
+            },
+            'gitiles': {
+                'url': gitiles_url,
+                'user': '',
+                'pass': '',
+                'retry': 1,
+                'timeout': -1
+            }
+        }
+        querier = Querier(config)
+
+        branch = 'master'
+        commit = {
+            'author': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+            'commit': commit_hash,
+            'committer': {'email': 'test@test.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+            'message': 'Test commit'
+        }
+
+        with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+            mock_query.return_value = [{'_number': 1, 'topic': '', 'hashtags': []}]
+
+            result = querier._build(repo, branch, commit, Label.ADD_COMMIT)
+
+            assert result[0][Commit.URL] == expected_url, f"Expected {expected_url}, got {result[0][Commit.URL]}"
+
+
 def test_hashtags_field_exists():
     """Test that hashtags field is properly added to commit objects"""
     config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))

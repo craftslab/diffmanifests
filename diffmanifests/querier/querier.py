@@ -29,7 +29,22 @@ class Querier(object):
             buf = self.gerrit.query('commit:' + commit, 0)
             if buf is None or len(buf) != 1:
                 return '', '', []
-            return self.gerrit.url().replace('/a', '/') + str(buf[0]['_number']), buf[0].get('topic', ''), buf[0].get('hashtags', [])
+
+            # Construct the change URL based on Gerrit instance type
+            gerrit_url = self.gerrit.url()
+            # Remove /a suffix if present (used for authenticated access)
+            if gerrit_url.endswith('/a'):
+                gerrit_url = gerrit_url[:-2]
+
+            change_number = str(buf[0]['_number'])
+
+            # For self-hosted Gerrit (non-googlesource), add /c/ prefix
+            if 'googlesource.com' not in gerrit_url:
+                change_url = gerrit_url + '/c/' + repo + '/+/' + change_number
+            else:
+                change_url = gerrit_url + '/' + change_number
+
+            return change_url, buf[0].get('topic', ''), buf[0].get('hashtags', [])
 
         change, topic, hashtags = _query(commit['commit'])
         return [{

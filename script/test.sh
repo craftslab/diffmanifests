@@ -1,3 +1,4 @@
 #!/bin/bash
 
-coverage run --source=diffmanifests,tests -m pytest -v --capture=no
+pip install --break-system-packages coverage
+python -m coverage run --source=diffmanifests,tests -m pytest -v --capture=no
