@@ -168,10 +168,10 @@ Comprehensive support for Gerrit hashtags through REST API v3.12.1, enabling bet
 
 #### Key Benefits
 
-✅ **Automatic hashtag extraction** from Gerrit changes
-✅ **Enhanced categorization** and filtering capabilities
-✅ **Seamless Gerrit workflow** integration
-✅ **Graceful fallback** for changes without hashtags
+✅ **Automatic hashtag extraction** from Gerrit changes  
+✅ **Enhanced categorization** and filtering capabilities  
+✅ **Seamless Gerrit workflow** integration  
+✅ **Graceful fallback** for changes without hashtags  
 
 #### Use Cases
 
