@@ -91,3 +91,9 @@ def test_hashtags_integration():
                   Commit.COMMITTER, Commit.DATE, Commit.DIFF, Commit.HASHTAGS,
                   Commit.MESSAGE, Commit.REPO, Commit.TOPIC, Commit.URL]:
         assert field in commit_data, f"Field {field} should be in commit data"
+
+def test_repo_name_constant():
+    """Test that Repo has NAME constant"""
+    assert hasattr(Repo, 'NAME'), "Repo.NAME should be defined"
+    assert Repo.NAME == 'name'
+    assert isinstance(Repo.NAME, str)

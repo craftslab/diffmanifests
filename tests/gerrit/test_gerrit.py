@@ -126,3 +126,151 @@ def test_gerrit_response_without_hashtags():
         assert len(result) == 1
         # Should not have hashtags field, which is expected
         assert 'hashtags' not in result[0] or result[0].get('hashtags') is None
+
+
+def test_gerrit_url():
+    """Test that Gerrit URL is returned correctly"""
+    config = {
+        "gerrit": {
+            "pass": "",
+            "query": {
+                "option": ["CURRENT_REVISION"]
+            },
+            "url": "https://android-review.googlesource.com",
+            "user": ""
+        }
+    }
+
+    gerrit = Gerrit(config)
+    assert gerrit.url() == "https://android-review.googlesource.com"
+
+
+def test_gerrit_url_with_auth():
+    """Test that Gerrit URL has /a suffix when auth is configured"""
+    config = {
+        "gerrit": {
+            "pass": "password",
+            "query": {
+                "option": ["CURRENT_REVISION"]
+            },
+            "url": "https://android-review.googlesource.com",
+            "user": "admin"
+        }
+    }
+
+    gerrit = Gerrit(config)
+    assert gerrit.url() == "https://android-review.googlesource.com/a"
+
+
+def test_gerrit_get_with_auth():
+    """Test that Gerrit.get() works with authentication"""
+    config = {
+        "gerrit": {
+            "pass": "password",
+            "query": {
+                "option": ["CURRENT_REVISION"]
+            },
+            "url": "https://test.example.com",
+            "user": "admin"
+        }
+    }
+
+    gerrit = Gerrit(config)
+
+    with unittest.mock.patch('diffmanifests.gerrit.gerrit.requests.get') as mock_get:
+        mock_response = unittest.mock.Mock()
+        mock_response.status_code = 200
+        import json
+        mock_response.text = ")]}'" + json.dumps({"_number": 123, "subject": "Test"})
+        mock_get.return_value = mock_response
+
+        result = gerrit.get(123)
+
+        assert result is not None
+        assert result['_number'] == 123
+        # Verify auth was passed to requests.get
+        mock_get.assert_called_once()
+        call_args = mock_get.call_args
+        assert call_args[1]['auth'] == ('admin', 'password')
+
+
+def test_gerrit_get_failure():
+    """Test that Gerrit.get() returns None on HTTP error"""
+    config = {
+        "gerrit": {
+            "pass": "",
+            "query": {
+                "option": ["CURRENT_REVISION"]
+            },
+            "url": "https://android-review.googlesource.com",
+            "user": ""
+        }
+    }
+
+    gerrit = Gerrit(config)
+
+    with unittest.mock.patch('requests.get') as mock_get:
+        mock_response = unittest.mock.Mock()
+        mock_response.status_code = 404
+        mock_get.return_value = mock_response
+
+        result = gerrit.get(999999)
+
+        assert result is None
+
+
+def test_gerrit_query_with_auth():
+    """Test that Gerrit.query() works with authentication"""
+    config = {
+        "gerrit": {
+            "pass": "password",
+            "query": {
+                "option": ["CURRENT_REVISION"]
+            },
+            "url": "https://test.example.com",
+            "user": "admin"
+        }
+    }
+
+    gerrit = Gerrit(config)
+
+    with unittest.mock.patch('diffmanifests.gerrit.gerrit.requests.get') as mock_get:
+        mock_response = unittest.mock.Mock()
+        mock_response.status_code = 200
+        import json
+        mock_response.text = ")]}'" + json.dumps([{"_number": 123, "subject": "Test"}])
+        mock_get.return_value = mock_response
+
+        result = gerrit.query('status:open', 0)
+
+        assert result is not None
+        assert len(result) == 1
+        # Verify auth was passed to requests.get
+        mock_get.assert_called_once()
+        call_args = mock_get.call_args
+        assert call_args[1]['auth'] == ('admin', 'password')
+
+
+def test_gerrit_query_failure():
+    """Test that Gerrit.query() returns None on HTTP error"""
+    config = {
+        "gerrit": {
+            "pass": "",
+            "query": {
+                "option": ["CURRENT_REVISION"]
+            },
+            "url": "https://android-review.googlesource.com",
+            "user": ""
+        }
+    }
+
+    gerrit = Gerrit(config)
+
+    with unittest.mock.patch('requests.get') as mock_get:
+        mock_response = unittest.mock.Mock()
+        mock_response.status_code = 500
+        mock_get.return_value = mock_response
+
+        result = gerrit.query('status:open', 0)
+
+        assert result is None
