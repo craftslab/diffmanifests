@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote  name="aosp" fetch=".." review="https://android-review.googlesource.com/" />
+  <default revision="master" remote="aosp" sync-j="4" />
+  <project name="platform/build/soong" path="build/soong-main" revision="370b79f02edc74a0c45f162fbe258453a36451f8" upstream="main" />
+  <project name="platform/build/soong" path="build/soong-android16-release" revision="0d1af912ad1804ab1f52caa92125bffe3fe16044" upstream="android16-release" />
+</manifest>

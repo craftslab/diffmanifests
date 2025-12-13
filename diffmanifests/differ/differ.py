@@ -23,50 +23,68 @@ class Differ(object):
         return data['manifest']['default']['@revision']
 
     def _diff(self, data1, data2):
-        def _helper(data, project, name):
+        def _helper(data, project, key):
             revision = ''
             upstream = ''
+            name = ''
             for item in project:
-                if item['@name'] == name:
+                item_name = item['@name']
+                item_upstream = item.get('@upstream', self._revision(data))
+                item_key = f"{item_name}@{item_upstream}"
+                if item_key == key:
                     revision = item.get('@revision', '')
-                    upstream = item.get('@upstream', self._revision(data))
+                    upstream = item_upstream
+                    name = item_name
                     break
-            return revision, upstream
+            return name, revision, upstream
+
+        def _make_key(item, default_revision):
+            name = item['@name']
+            upstream = item.get('@upstream', default_revision)
+            return f"{name}@{upstream}"
 
         project1 = data1['manifest']['project']
         if type(project1) is not list:
             project1 = [project1]
 
-        name1 = []
+        default_revision1 = self._revision(data1)
+        keys1 = []
         for item in project1:
-            name1.append(item['@name'])
+            keys1.append(_make_key(item, default_revision1))
 
         project2 = data2['manifest']['project']
         if type(project2) is not list:
             project2 = [project2]
 
-        name2 = []
+        default_revision2 = self._revision(data2)
+        keys2 = []
         for item in project2:
-            name2.append(item['@name'])
+            keys2.append(_make_key(item, default_revision2))
 
         added = {}
-        buf = list(set(name2).difference(set(name1)))
-        for item in buf:
-            revision2, upstream2 = _helper(data2, project2, item)
-            added[item] = [
+        buf = list(set(keys2).difference(set(keys1)))
+        for key in buf:
+            name, revision2, upstream2 = _helper(data2, project2, key)
+            # Use name@upstream as display key to differentiate duplicates
+            display_key = key if key.count('@') > 0 else name
+            added[display_key] = [
                 {},
                 {
+                    Repo.NAME: name,
                     Repo.BRANCH: upstream2,
                     Repo.COMMIT: revision2
                 }
             ]
 
         removed = {}
-        buf = list(set(name1).difference(set(name2)))
-        for item in buf:
-            revision1, upstream1 = _helper(data1, project1, item)
-            removed[item] = [
+        buf = list(set(keys1).difference(set(keys2)))
+        for key in buf:
+            name, revision1, upstream1 = _helper(data1, project1, key)
+            # Use name@upstream as display key to differentiate duplicates
+            display_key = key if key.count('@') > 0 else name
+            removed[display_key] = [
                 {
+                    Repo.NAME: name,
                     Repo.BRANCH: upstream1,
                     Repo.COMMIT: revision1
                 },
@@ -74,18 +92,22 @@ class Differ(object):
             ]
 
         updated = {}
-        buf = list(set(name1).intersection(set(name2)))
-        for item in buf:
-            revision1, upstream1 = _helper(data1, project1, item)
-            revision2, upstream2 = _helper(data2, project2, item)
+        buf = list(set(keys1).intersection(set(keys2)))
+        for key in buf:
+            name1, revision1, upstream1 = _helper(data1, project1, key)
+            name2, revision2, upstream2 = _helper(data2, project2, key)
             if revision1 == revision2:
                 continue
-            updated[item] = [
+            # Use name@upstream as display key to differentiate duplicates
+            display_key = key if key.count('@') > 0 else name1
+            updated[display_key] = [
                 {
+                    Repo.NAME: name1,
                     Repo.BRANCH: upstream1,
                     Repo.COMMIT: revision1
                 },
                 {
+                    Repo.NAME: name2,
                     Repo.BRANCH: upstream2,
                     Repo.COMMIT: revision2
                 }

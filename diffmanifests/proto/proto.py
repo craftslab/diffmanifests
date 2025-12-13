@@ -68,3 +68,4 @@ class Repo:
     BRANCH = 'branch'
     COMMIT = 'commit'
     DIFF = 'diff'
+    NAME = 'name'

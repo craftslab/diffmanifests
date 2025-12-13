@@ -230,7 +230,16 @@ class Querier(object):
 
         buf = []
         for key, val in data.get(label, {}).items():
-            buf.extend(_helper(key, val, label))
+            # Extract actual repo name from the commit data if available
+            # For projects with duplicate names, use the 'name' field from Repo
+            repo_name = key
+            if val and len(val) > 0:
+                # Check first non-empty dict in the list
+                for item in val:
+                    if item and Repo.NAME in item:
+                        repo_name = item[Repo.NAME]
+                        break
+            buf.extend(_helper(repo_name, val, label))
         return buf
 
     def run(self, data):
