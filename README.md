@@ -98,7 +98,7 @@ diffmanifests \
 | `--config-file` | Path to configuration JSON file | ✅ |
 | `--manifest1-file` | Path to first manifest XML file (older version) | ✅ |
 | `--manifest2-file` | Path to second manifest XML file (newer version) | ✅ |
-| `--output-file` | Path to output JSON file for results | ✅ |
+| `--output-file` | Path to output file for results (supports `.json`, `.txt`, `.xlsx` formats) | ✅ |
 
 ---
 
@@ -187,9 +187,13 @@ Comprehensive support for Gerrit hashtags through REST API v3.12.1, enabling bet
 
 ## 📄 Output Format
 
-The tool generates a JSON file with detailed information about each changed commit.
+The tool supports three output formats determined by the file extension:
 
-### Output Structure
+- **`.json`** - Structured JSON format for programmatic processing
+- **`.txt`** - Human-readable plain text format
+- **`.xlsx`** - Excel spreadsheet format for analysis and reporting
+
+### JSON Output Structure
 
 ```json
 {
@@ -229,7 +233,7 @@ The tool generates a JSON file with detailed information about each changed comm
 
 ## 💡 Examples
 
-### Example 1: Basic Comparison
+### Example 1: Basic Comparison (JSON Output)
 
 ```bash
 diffmanifests \
@@ -237,6 +241,24 @@ diffmanifests \
   --manifest1-file ./data/android-11.xml \
   --manifest2-file ./data/android-12.xml \
   --output-file ./results/diff-output.json
+```
+
+**Alternative Output Formats:**
+
+```bash
+# Plain text format
+diffmanifests \
+  --config-file ./config/config.json \
+  --manifest1-file ./data/android-11.xml \
+  --manifest2-file ./data/android-12.xml \
+  --output-file ./results/diff-output.txt
+
+# Excel format
+diffmanifests \
+  --config-file ./config/config.json \
+  --manifest1-file ./data/android-11.xml \
+  --manifest2-file ./data/android-12.xml \
+  --output-file ./results/diff-output.xlsx
 ```
 
 ### Example 2: With Custom Configuration

@@ -98,7 +98,7 @@ diffmanifests \
 | `--config-file` | 配置 JSON 文件路径 | ✅ |
 | `--manifest1-file` | 第一个清单 XML 文件路径（旧版本） | ✅ |
 | `--manifest2-file` | 第二个清单 XML 文件路径（新版本） | ✅ |
-| `--output-file` | 结果输出 JSON 文件路径 | ✅ |
+| `--output-file` | 结果输出文件路径（支持 `.json`、`.txt`、`.xlsx` 格式） | ✅ |
 
 ---
 
@@ -187,9 +187,13 @@ diffmanifests \
 
 ## 📄 输出格式
 
-该工具生成一个包含每个变更提交详细信息的 JSON 文件。
+该工具支持三种输出格式,由文件扩展名决定：
 
-### 输出结构
+- **`.json`** - 结构化 JSON 格式,便于程序处理
+- **`.txt`** - 人类可读的纯文本格式
+- **`.xlsx`** - Excel 电子表格格式,便于分析和报告
+
+### JSON 输出结构
 
 ```json
 {
@@ -229,7 +233,7 @@ diffmanifests \
 
 ## 💡 使用示例
 
-### 示例 1：基本对比
+### 示例 1：基本对比（JSON 输出）
 
 ```bash
 diffmanifests \
@@ -237,6 +241,24 @@ diffmanifests \
   --manifest1-file ./data/android-11.xml \
   --manifest2-file ./data/android-12.xml \
   --output-file ./results/diff-output.json
+```
+
+**其他输出格式：**
+
+```bash
+# 纯文本格式
+diffmanifests \
+  --config-file ./config/config.json \
+  --manifest1-file ./data/android-11.xml \
+  --manifest2-file ./data/android-12.xml \
+  --output-file ./results/diff-output.txt
+
+# Excel 格式
+diffmanifests \
+  --config-file ./config/config.json \
+  --manifest1-file ./data/android-11.xml \
+  --manifest2-file ./data/android-12.xml \
+  --output-file ./results/diff-output.xlsx
 ```
 
 ### 示例 2：自定义配置
