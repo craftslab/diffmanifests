@@ -292,3 +292,165 @@ def test_main_manifest2_invalid_format():
             assert result == -3
     finally:
         os.remove(manifest_file)
+
+
+def test_main_output_invalid_format():
+    """Test main with output file in invalid format"""
+    config_file = '/workspaces/diffmanifests/diffmanifests/config/config.json'
+    manifest1_file = '/workspaces/diffmanifests/tests/data/manifest1-001.xml'
+    manifest2_file = '/workspaces/diffmanifests/tests/data/manifest2-001.xml'
+
+    with unittest.mock.patch('sys.argv', [
+        'diffmanifests',
+        '-c', config_file,
+        '-m', manifest1_file,
+        '-n', manifest2_file,
+        '-o', 'output.pdf'
+    ]):
+        result = main()
+        assert result == -4
+
+
+def test_main_differ_exception():
+    """Test main with DifferException"""
+    from diffmanifests.differ.differ import DifferException
+
+    config_file = '/workspaces/diffmanifests/diffmanifests/config/config.json'
+    manifest1_file = '/workspaces/diffmanifests/tests/data/manifest1-001.xml'
+    manifest2_file = '/workspaces/diffmanifests/tests/data/manifest2-001.xml'
+
+    class MockDiffer:
+        def __init__(self, *_):
+            pass
+        def run(self, *_):
+            raise DifferException('Differ error')
+
+    with unittest.mock.patch('diffmanifests.main.Differ', MockDiffer):
+        with unittest.mock.patch('sys.argv', [
+            'diffmanifests',
+            '-c', config_file,
+            '-m', manifest1_file,
+            '-n', manifest2_file,
+            '-o', 'output.json'
+        ]):
+            result = main()
+            assert result == -5
+
+
+def test_main_querier_exception():
+    """Test main with QuerierException"""
+    from diffmanifests.querier.querier import QuerierException
+
+    config_file = '/workspaces/diffmanifests/diffmanifests/config/config.json'
+    manifest1_file = '/workspaces/diffmanifests/tests/data/manifest1-001.xml'
+    manifest2_file = '/workspaces/diffmanifests/tests/data/manifest2-001.xml'
+
+    class MockDiffer:
+        def __init__(self, *_):
+            pass
+        def run(self, *_):
+            return {'update repo': {'test': [{'commit': 'abc'}, {'commit': 'def'}]}}
+
+    class MockQuerier:
+        def __init__(self, *_):
+            pass
+        def run(self, *_):
+            raise QuerierException('Querier error')
+
+    with unittest.mock.patch('diffmanifests.main.Differ', MockDiffer), \
+         unittest.mock.patch('diffmanifests.main.Querier', MockQuerier):
+        with unittest.mock.patch('sys.argv', [
+            'diffmanifests',
+            '-c', config_file,
+            '-m', manifest1_file,
+            '-n', manifest2_file,
+            '-o', 'output.json'
+        ]):
+            result = main()
+            assert result == -6
+
+
+def test_main_printer_exception():
+    """Test main with PrinterException"""
+    from diffmanifests.printer.printer import PrinterException
+
+    config_file = '/workspaces/diffmanifests/diffmanifests/config/config.json'
+    manifest1_file = '/workspaces/diffmanifests/tests/data/manifest1-001.xml'
+    manifest2_file = '/workspaces/diffmanifests/tests/data/manifest2-001.xml'
+
+    class MockDiffer:
+        def __init__(self, *_):
+            pass
+        def run(self, *_):
+            return {'update repo': {'test': [{'commit': 'abc'}, {'commit': 'def'}]}}
+
+    class MockQuerier:
+        def __init__(self, *_):
+            pass
+        def run(self, buf):
+            return [{
+                'author': 'Test <test@example.com>',
+                'branch': 'master',
+                'change': '',
+                'commit': 'def456',
+                'committer': 'Test <test@example.com>',
+                'date': 'Mon Jan 01 00:00:00 2024 +0000',
+                'diff': 'ADD COMMIT',
+                'hashtags': [],
+                'message': 'Test message',
+                'repo': 'platform/build',
+                'topic': '',
+                'url': 'http://example.com'
+            }]
+
+    class MockPrinter:
+        _format = ['.json', '.txt', '.xlsx']
+
+        def __init__(self, *_):
+            pass
+
+        def run(self, buf, name):
+            raise PrinterException('Printer error')
+
+        @staticmethod
+        def format():
+            return MockPrinter._format
+
+    with unittest.mock.patch('diffmanifests.main.Differ', MockDiffer), \
+         unittest.mock.patch('diffmanifests.main.Querier', MockQuerier), \
+         unittest.mock.patch('diffmanifests.main.Printer', MockPrinter):
+        with unittest.mock.patch('sys.argv', [
+            'diffmanifests',
+            '-c', config_file,
+            '-m', manifest1_file,
+            '-n', manifest2_file,
+            '-o', 'output.json'
+        ]):
+            result = main()
+            assert result == -7
+
+
+def test_main_output_file_exists():
+    """Test main with output file that already exists"""
+    config_file = '/workspaces/diffmanifests/diffmanifests/config/config.json'
+    manifest1_file = '/workspaces/diffmanifests/tests/data/manifest1-001.xml'
+    manifest2_file = '/workspaces/diffmanifests/tests/data/manifest2-001.xml'
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        f.write('{}')
+        f.flush()
+        output_file = f.name
+
+    try:
+        with unittest.mock.patch('sys.argv', [
+            'diffmanifests',
+            '-c', config_file,
+            '-m', manifest1_file,
+            '-n', manifest2_file,
+            '-o', output_file
+        ]):
+            result = main()
+            assert result == -4
+    finally:
+        if os.path.exists(output_file):
+            os.remove(output_file)

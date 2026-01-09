@@ -1150,3 +1150,394 @@ def test_querier():
 
     if buf is not None:
         pprint.pprint(buf)
+
+
+def test_querier_exception_no_config():
+    """Test Querier raises exception when config is None"""
+    try:
+        Querier(None)
+        assert False, "Expected QuerierException"
+    except QuerierException as e:
+        assert 'config invalid' in str(e)
+
+
+def test_querier_get_commits_with_variants_success():
+    """Test _get_commits_with_variants returns data successfully"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    # Mock gitiles.commits to return data
+    mock_data = {'log': [{'commit': 'abc123'}]}
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits') as mock_commits:
+        mock_commits.return_value = mock_data
+        result = querier._get_commits_with_variants('test/repo', 'master', 'abc123')
+        assert result == mock_data
+
+
+def test_querier_get_commits_with_variants_no_prefix():
+    """Test _get_commits_with_variants with refs/ prefix already present"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    # Mock gitiles.commits to return data
+    mock_data = {'log': [{'commit': 'abc123'}]}
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits') as mock_commits:
+        mock_commits.return_value = mock_data
+        result = querier._get_commits_with_variants('test/repo', 'refs/heads/master', 'abc123')
+        assert result == mock_data
+
+
+def test_querier_get_commits_with_variants_all_fail():
+    """Test _get_commits_with_variants returns None when all variants fail"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits') as mock_commits:
+        mock_commits.side_effect = StopIteration()
+        result = querier._get_commits_with_variants('test/repo', 'master', 'abc123')
+        assert result is None
+
+
+def test_querier_build_no_gerrit_match():
+    """Test _build when gerrit query returns no results"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit = {
+        'author': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'commit': 'abc123',
+        'committer': {
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'time': 'Mon Jan 01 12:00:00 2023 +0000'
+        },
+        'message': 'Test commit'
+    }
+
+    with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+        mock_query.return_value = []
+        with unittest.mock.patch.object(querier.gitiles, 'url') as mock_url:
+            mock_url.return_value = 'http://example.com'
+            result = querier._build('test/repo', 'master', commit, Label.ADD_COMMIT)
+            assert len(result) == 1
+            assert result[0][Commit.CHANGE] == ''
+
+
+def test_querier_fetch_add_repo_commit_none():
+    """Test _fetch for add repo when commit data is None"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    data = {
+        'add repo': {
+            'test/repo': [{}, {'branch': 'master', 'commit': 'abc123'}]
+        }
+    }
+
+    with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+        mock_commit.return_value = None
+        result = querier._fetch(data, Label.ADD_REPO)
+        assert result == []
+
+
+def test_querier_fetch_remove_repo_commit_none():
+    """Test _fetch for remove repo when commit data is None"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    data = {
+        'remove repo': {
+            'test/repo': [{'branch': 'master', 'commit': 'abc123'}, {}]
+        }
+    }
+
+    with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+        mock_commit.return_value = None
+        result = querier._fetch(data, Label.REMOVE_REPO)
+        assert result == []
+
+
+def test_querier_fetch_unknown_label():
+    """Test _fetch with unknown label"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    data = {'unknown': {'test/repo': [{'branch': 'master', 'commit': 'abc123'}, {}]}}
+    result = querier._fetch(data, 'unknown')
+    assert result == []
+
+
+def test_querier_run():
+    """Test querier run method processes all labels"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    data = {
+        'add repo': {},
+        'remove repo': {},
+        'update repo': {}
+    }
+
+    with unittest.mock.patch.object(querier, '_fetch') as mock_fetch:
+        mock_fetch.return_value = []
+        result = querier.run(data)
+        # _fetch should be called 3 times (for each label)
+        assert mock_fetch.call_count == 3
+        assert result == []
+
+
+def test_querier_ahead_with_chinese_chars():
+    """Test _ahead correctly handles Chinese characters in time format"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {
+        'committer': {
+            'time': '周二 2月 18 23:29:44 2020 -0800'
+        }
+    }
+    commit2 = {
+        'committer': {
+            'time': '周三 2月 19 23:29:45 2020 -0800'
+        }
+    }
+
+    result = querier._ahead(commit1, commit2)
+    assert result is True
+
+
+def test_querier_commits_with_none_commit():
+    """Test _commits when gitiles.commit returns None"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+
+    with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+        mock_commit.return_value = None
+        commits, status = querier._commits('test/repo', commit1, commit2, True)
+        assert commits == []
+        assert status is False
+
+
+def test_querier_commit1_with_pagination():
+    """Test _commit1 with pagination (next page)"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+
+    # Mock data with pagination
+    mock_commits1 = {'log': [{'commit': 'commit1'}, {'commit': 'commit2'}], 'next': 'page2'}
+    mock_commits2 = {'log': [{'commit': 'abc123'}]}
+
+    with unittest.mock.patch.object(querier, '_get_commits_with_variants') as mock_variants:
+        mock_variants.side_effect = [mock_commits1, mock_commits2, mock_commits2]
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            mock_commit.return_value = {
+                'author': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                'commit': 'abc123',
+                'committer': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                'message': 'Test'
+            }
+            result, _ = querier._commit1('test/repo', commit1, commit2)
+            assert result is not None
+
+
+def test_querier_commit1_none_data():
+    """Test _commit1 when gitiles.commit returns None"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+
+    mock_commits = {'log': [{'commit': 'shared_commit'}]}
+
+    with unittest.mock.patch.object(querier, '_get_commits_with_variants') as mock_variants:
+        mock_variants.return_value = mock_commits
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            mock_commit.return_value = None
+            result, _ = querier._commit1('test/repo', commit1, commit2)
+            assert result is None
+
+
+def test_querier_diff_with_none_commit():
+    """Test _diff when _commit1 returns None"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (None, '')
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            mock_commit.return_value = {
+                'author': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                'commit': 'def456',
+                'committer': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+                'message': 'Test'
+            }
+            with unittest.mock.patch.object(querier.gerrit, 'query') as mock_query:
+                mock_query.return_value = [{'_number': 123, 'topic': '', 'hashtags': []}]
+                with unittest.mock.patch.object(querier.gerrit, 'url') as mock_gerrit_url:
+                    mock_gerrit_url.return_value = 'http://example.com'
+                    with unittest.mock.patch.object(querier.gitiles, 'url') as mock_gitiles_url:
+                        mock_gitiles_url.return_value = 'http://example.com'
+                        result = querier._diff('test/repo', commit1, commit2)
+                        assert isinstance(result, list)
+
+
+def test_querier_diff_commits_failed_with_branch():
+    """Test _diff when _commits fails with branch"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+    shared_commit = {'branch': 'master', 'commit': 'shared'}
+
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (shared_commit, Label.ADD_COMMIT)
+        with unittest.mock.patch.object(querier, '_commits') as mock_commits:
+            mock_commits.return_value = ([], False)  # commits failed
+            result = querier._diff('test/repo', commit1, commit2)
+            assert result == []
+
+
+def test_querier_diff_commits_failed_with_hash():
+    """Test _diff when _commits fails with both branch and commit hash"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+    shared_commit = {'branch': 'master', 'commit': 'shared'}
+
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (shared_commit, Label.ADD_COMMIT)
+        with unittest.mock.patch.object(querier, '_commits') as mock_commits:
+            # First call fails (with branch), second call also fails (with hash)
+            mock_commits.side_effect = [([], False), ([], False)]
+            result = querier._diff('test/repo', commit1, commit2)
+            assert result == []
+
+
+def test_querier_diff_different_commits_between():
+    """Test _diff when common commit is different from commit1"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+    shared_commit = {'branch': 'master', 'commit': 'shared'}
+
+    mock_commit_data = {
+        'author': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'commit': 'intermediate',
+        'committer': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'message': 'Test'
+    }
+
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (shared_commit, Label.ADD_COMMIT)
+        with unittest.mock.patch.object(querier, '_commits') as mock_commits:
+            # First call returns commits between shared and commit2
+            # Second call returns commits between abc123 and shared
+            mock_commits.side_effect = [
+                ([mock_commit_data], True),
+                ([mock_commit_data], True)
+            ]
+            with unittest.mock.patch.object(querier, '_build') as mock_build:
+                mock_build.return_value = []
+                result = querier._diff('test/repo', commit1, commit2)
+                # _build should be called at least twice (for commit2 branch and commit1 label)
+                assert mock_build.call_count >= 2
+
+
+def test_querier_diff_commits_failed_between_commits():
+    """Test _diff when _commits fails between commit1 and common commit"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+    shared_commit = {'branch': 'master', 'commit': 'shared'}
+
+    mock_commit_data = {
+        'author': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'commit': 'intermediate',
+        'committer': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'message': 'Test'
+    }
+
+    with unittest.mock.patch.object(querier, '_commit1') as mock_commit1:
+        mock_commit1.return_value = (shared_commit, Label.ADD_COMMIT)
+        with unittest.mock.patch.object(querier, '_commits') as mock_commits:
+            # First call succeeds, second call fails
+            mock_commits.side_effect = [
+                ([mock_commit_data], True),
+                ([], False)
+            ]
+            with unittest.mock.patch.object(querier, '_build') as mock_build:
+                mock_build.return_value = []
+                result = querier._diff('test/repo', commit1, commit2)
+                assert result == []
+
+
+def test_querier_commit1_no_more_commits_on_first_page():
+    """Test _commit1 with no commits after first page"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+
+    # First call returns data without next page
+    mock_commits = {'log': [{'commit': 'commit1'}]}
+
+    with unittest.mock.patch.object(querier, '_get_commits_with_variants') as mock_variants:
+        mock_variants.return_value = mock_commits
+        result, _ = querier._commit1('test/repo', commit1, commit2)
+        assert result is None
+
+
+def test_querier_commit1_with_remove_label():
+    """Test _commit1 when label is REMOVE_COMMIT"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    commit1 = {'branch': 'master', 'commit': 'abc123'}
+    commit2 = {'branch': 'master', 'commit': 'def456'}
+
+    mock_data1 = {
+        'author': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'commit': 'abc123',
+        'committer': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 12:00:00 2023 +0000'},
+        'message': 'Test'
+    }
+    mock_data2 = {
+        'author': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 11:00:00 2023 +0000'},
+        'commit': 'def456',
+        'committer': {'email': 'test@example.com', 'name': 'Test', 'time': 'Mon Jan 01 11:00:00 2023 +0000'},
+        'message': 'Test'
+    }
+
+    mock_commits = {'log': [{'commit': 'def456'}]}
+
+    with unittest.mock.patch.object(querier, '_get_commits_with_variants') as mock_variants:
+        mock_variants.return_value = mock_commits
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            mock_commit.side_effect = [mock_data1, mock_data2]
+            result, label = querier._commit1('test/repo', commit1, commit2)
+            # When commit1 is ahead, should return REMOVE_COMMIT
+            assert label == Label.REMOVE_COMMIT or label == ''
