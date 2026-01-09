@@ -128,6 +128,104 @@ def test_main_invalid_output():
         os.remove(output_file)
 
 
+def test_main_success_flow():
+    """Test main end-to-end success using mocks to avoid network calls."""
+    import types
+    from diffmanifests.differ.differ import Differ
+    from diffmanifests.querier.querier import Querier
+    from diffmanifests.printer.printer import Printer
+
+    # Prepare temp manifests
+    manifest1_xml = """<?xml version='1.0' encoding='utf-8'?>\n<manifest>\n  <remote name='zte' fetch='..'/>\n  <default revision='master' remote='zte'/>\n  <project name='platform/build' revision='abc123'/>\n</manifest>\n"""
+    manifest2_xml = """<?xml version='1.0' encoding='utf-8'?>\n<manifest>\n  <remote name='zte' fetch='..'/>\n  <default revision='master' remote='zte'/>\n  <project name='platform/build' revision='def456'/>\n</manifest>\n"""
+
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f1, \
+         tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f2:
+        f1.write(manifest1_xml)
+        f2.write(manifest2_xml)
+        manifest1_file = f1.name
+        manifest2_file = f2.name
+
+    output_file = manifest1_file + '.xlsx'
+
+    # Create a simple config file path
+    config_file = os.path.join(os.path.dirname(__file__), '../diffmanifests/config/config.json')
+
+    # Patch Differ, Querier, Printer to avoid external calls
+    class MockDiffer:
+        def __init__(self, *_):
+            pass
+        def run(self, *_):
+            return {
+                'update repo': {
+                    'platform/build': [
+                        {'name': 'platform/build', 'branch': 'master', 'commit': 'abc123'},
+                        {'name': 'platform/build', 'branch': 'master', 'commit': 'def456'}
+                    ]
+                }
+            }
+
+    class MockQuerier:
+        def __init__(self, *_):
+            pass
+        def run(self, buf):
+            # Inject a minimal commit object to be printed
+            return [
+                {
+                    'author': 'Test <test@example.com>',
+                    'branch': 'master',
+                    'change': '',
+                    'commit': 'def456',
+                    'committer': 'Test <test@example.com>',
+                    'date': 'Mon Jan 01 00:00:00 2024 +0000',
+                    'diff': 'ADD COMMIT',
+                    'hashtags': [],
+                    'message': 'Test message',
+                    'repo': 'platform/build',
+                    'topic': '',
+                    'url': 'http://example.com/platform/build/+/def456'
+                }
+            ]
+
+    class MockPrinter:
+        _format = ['.json', '.txt', '.xlsx']
+
+        def __init__(self, *_):
+            pass
+
+        def run(self, buf, name):
+            # Write a minimal file to emulate output
+            with open(name, 'wb') as f:
+                f.write(b'OK')
+
+        @staticmethod
+        def format():
+            return MockPrinter._format
+
+    import unittest.mock
+    with unittest.mock.patch('diffmanifests.main.Differ', MockDiffer), \
+         unittest.mock.patch('diffmanifests.main.Querier', MockQuerier), \
+         unittest.mock.patch('diffmanifests.main.Printer', MockPrinter), \
+         unittest.mock.patch('sys.argv', [
+             'diffmanifests',
+             '-c', config_file,
+             '-m', manifest1_file,
+             '-n', manifest2_file,
+             '-o', output_file
+         ]):
+        result = main()
+        try:
+            assert result == 0
+            assert os.path.exists(output_file)
+        finally:
+            # Cleanup temp files
+            os.remove(manifest1_file)
+            os.remove(manifest2_file)
+            if os.path.exists(output_file):
+                os.remove(output_file)
+
+
 def test_main_config_file_invalid_format():
     """Test main with config file in invalid format"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:

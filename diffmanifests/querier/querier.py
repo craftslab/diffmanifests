@@ -24,6 +24,19 @@ class Querier(object):
         self.gerrit = Gerrit(config)
         self.gitiles = Gitiles(config)
 
+    def _get_commits_with_variants(self, repo, branch, commit):
+        candidates = [branch]
+        if branch and not branch.startswith('refs/'):
+            candidates.extend([f'refs/heads/{branch}', f'refs/tags/{branch}'])
+        for b in candidates:
+            try:
+                data = self.gitiles.commits(repo, b, commit)
+            except StopIteration:
+                data = None
+            if data is not None and len(data.get('log', [])) != 0:
+                return data
+        return None
+
     def _build(self, repo, branch, commit, label):
         def _query(commit):
             buf = self.gerrit.query('commit:' + commit, 0)
@@ -87,7 +100,7 @@ class Querier(object):
             commit = self.gitiles.commit(repo, commit1[Repo.COMMIT])
             if commit is None:
                 return [], None, False
-            commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
+            commits = self._get_commits_with_variants(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
             if commits is None:
                 return [], None, False
             completed = False
@@ -121,13 +134,13 @@ class Querier(object):
         return buf, status
 
     def _commit1(self, repo, commit1, commit2):
-        # Try to get commits from commit2's history using the branch
-        commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
-        if commits is None or len(commits.get('log', [])) == 0:
-            # Fallback: try using commit hash directly instead of branch
-            commits = self.gitiles.commits(repo, commit2[Repo.COMMIT], commit2[Repo.COMMIT])
-            if commits is None or len(commits.get('log', [])) == 0:
-                Logger.warn('_commit1: Failed to get commits for repo: %s with both branch and commit hash' % repo)
+        # Try to get commits from commit2's history using the branch (with variants)
+        commits = self._get_commits_with_variants(repo, commit2[Repo.BRANCH], commit2[Repo.COMMIT])
+        if commits is None:
+            # Fallback: try using commit hash directly (rare for +log, but attempt variants)
+            commits = self._get_commits_with_variants(repo, commit2[Repo.COMMIT], commit2[Repo.COMMIT])
+            if commits is None:
+                Logger.warn('_commit1: Failed to get commits for repo: %s with branch variants and commit hash' % repo)
                 return None, ''
 
         iterations = 0
@@ -139,7 +152,8 @@ class Querier(object):
             for item in commits.get('log', []):
                 checked_commits.append(item['commit'][:8])  # Store first 8 chars for logging
                 # Check if this commit exists in commit1's history by querying from commit1
-                data = self.gitiles.commits(repo, commit1[Repo.COMMIT], item['commit'])
+                # Try branch variants to find the intersection
+                data = self._get_commits_with_variants(repo, commit1[Repo.BRANCH], item['commit'])
                 if data is not None and len(data['log']) != 0:
                     commit = {
                         Repo.BRANCH: commit1[Repo.BRANCH],
@@ -152,7 +166,7 @@ class Querier(object):
             if data is None:
                 Logger.warn('_commit1: No more commits to check (pagination ended) for repo: %s after %d iterations (checked: %s)' % (repo, iterations, ', '.join(checked_commits)))
                 break
-            commits = self.gitiles.commits(repo, commit2[Repo.BRANCH], data)
+            commits = self._get_commits_with_variants(repo, commit2[Repo.BRANCH], data)
             if commits is None:
                 Logger.warn('_commit1: Failed to get next page of commits for repo: %s' % repo)
                 break

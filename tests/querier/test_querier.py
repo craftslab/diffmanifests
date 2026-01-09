@@ -578,22 +578,31 @@ def test_commit1_fallback_to_commit_hash():
     }
 
     # Mock gitiles.commits to simulate branch query returning empty, then commit hash query succeeding
-    with unittest.mock.patch.object(querier.gitiles, 'commits') as mock_commits:
-        # First call with branch returns empty log
-        # Second call with commit hash returns commits
-        # Third call checks if 7eb4bc92 exists in commit1's history
-        mock_commits.side_effect = [
-            {'log': []},  # Branch query returns empty
-            {  # Commit hash query returns results with ec5731be first (most recent)
+    # Now with branch variants, more calls are needed
+    calls = []
+    def mock_commits_func(repo_arg, branch_arg, commit_arg):
+        calls.append((branch_arg, commit_arg))
+        # First variants on commit2 branch - all fail
+        if branch_arg == commit2['branch'] or branch_arg.startswith('refs/'):
+            if commit_arg == commit2['commit'] and len(calls) <= 3:
+                return {'log': []}
+        # Fallback to commit hash query succeeds
+        if branch_arg == commit2['commit'] and commit_arg == commit2['commit']:
+            return {
                 'log': [
                     {'commit': 'ec5731bebfad7a44666da5b6a5deb3a2b27d9eaa'},
                     {'commit': '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'}
                 ]
-            },
-            {'log': []},  # Check if ec5731be exists in commit1 - no
-            {'log': [{'commit': '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'}]}  # Check if 7eb4bc92 exists in commit1 - yes
-        ]
+            }
+        # Check if ec5731be exists in commit1 - no (with variants)
+        if commit_arg == 'ec5731bebfad7a44666da5b6a5deb3a2b27d9eaa':
+            return {'log': []}
+        # Check if 7eb4bc92 exists in commit1 - yes
+        if commit_arg == '7eb4bc92a52ec944badf96a7192d884eb04e9c4c':
+            return {'log': [{'commit': '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'}]}
+        return {'log': []}
 
+    with unittest.mock.patch.object(querier.gitiles, 'commits', side_effect=mock_commits_func):
         with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
             mock_commit.side_effect = [
                 {'commit': '7daac874f76aaba85b687bde7e21d38082ee5ddf', 'committer': {'time': 'Mon Jan 01 12:00:00 2023 +0000'}},
@@ -605,8 +614,149 @@ def test_commit1_fallback_to_commit_hash():
             # Should find the common commit using fallback
             assert result is not None
             assert result['commit'] == '7eb4bc92a52ec944badf96a7192d884eb04e9c4c'
-            # Verify that commits was called multiple times (first with branch, then with commit hash, then checking common)
-            assert mock_commits.call_count >= 2
+            # Verify that commits was called multiple times
+            assert len(calls) >= 2
+
+
+def test_commit1_branch_variants_heads_and_tags():
+    """_commit1 should try refs/heads/ and refs/tags/ when plain branch fails."""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'Business/HeartyService/HeartyService-HeartyService'
+    commit1 = { 'branch': 'storage_cleanup', 'commit': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }
+    commit2 = { 'branch': 'NebulaOS1.0_V_TA_20250312', 'commit': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }
+
+    calls = []
+
+    def mock_commits(repo_arg, branch_arg, commit_arg):
+        calls.append(branch_arg)
+        # Fail for plain branch
+        if branch_arg == commit2['branch']:
+            return None
+        # Succeed for refs/heads on commit2 branch
+        if branch_arg == f"refs/heads/{commit2['branch']}":
+            return { 'log': [ { 'commit': commit2['commit'] } ], 'next': None }
+        # Also allow refs/heads on commit1 branch for intersection check
+        if branch_arg == f"refs/heads/{commit1['branch']}":
+            return { 'log': [ { 'commit': commit_arg } ] }
+        # Not needed, but simulate tags failing
+        return None
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits', side_effect=mock_commits):
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            # Return commit data for comparisons
+            mock_commit.side_effect = [
+                { 'commit': commit1['commit'], 'committer': { 'time': 'Mon Jan 02 12:00:00 2023 +0000' } },
+                { 'commit': commit2['commit'], 'committer': { 'time': 'Mon Jan 03 12:00:00 2023 +0000' } }
+            ]
+
+            result, label = querier._commit1(repo, commit1, commit2)
+
+            assert result is not None
+            assert f"refs/heads/{commit2['branch']}" in calls
+            assert label in (Label.ADD_COMMIT, Label.REMOVE_COMMIT)
+
+
+def test_get_commits_with_variants_helper():
+    """Direct test of _get_commits_with_variants branch fallback sequencing."""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'test/repo'
+    branch = 'NebulaOS1.0_V_TA_20250312'
+    commit = 'cccccccccccccccccccccccccccccccccccccccc'
+
+    calls = []
+    def mock_commits(repo_arg, branch_arg, commit_arg):
+        calls.append(branch_arg)
+        if branch_arg == branch:  # plain fails
+            return None
+        if branch_arg == f'refs/heads/{branch}':  # heads succeeds
+            return { 'log': [ { 'commit': commit } ] }
+        return None
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits', side_effect=mock_commits):
+        result = querier._get_commits_with_variants(repo, branch, commit)
+        assert result is not None
+        assert calls[0] == branch
+        assert calls[1] == f'refs/heads/{branch}'
+        # tags should not be needed in this scenario, but helper includes it
+
+
+def test_fetch_uses_repo_name_from_data():
+    """Ensure _fetch extracts actual repo name from data rather than using path key."""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    data = {
+        'update repo': {
+            'Business/HeartyService/HeartyService-HeartyService/~NebulaOS1.0_V_TA_20250312': [
+                { 'name': 'Business/HeartyService/HeartyService-HeartyService', 'branch': 'NebulaOS1.0_V_TA_20250312', 'commit': 'aaaaaaaa' },
+                { 'name': 'Business/HeartyService/HeartyService-HeartyService', 'branch': 'NebulaOS1.0_V_TA_20250312', 'commit': 'bbbbbbbb' }
+            ]
+        }
+    }
+
+    with unittest.mock.patch.object(querier, '_diff') as mock_diff:
+        mock_diff.return_value = []
+        querier._fetch(data, 'update repo')
+        # _fetch should call _diff with the extracted repo name (without path suffix)
+        args, kwargs = mock_diff.call_args
+        assert args[0] == 'Business/HeartyService/HeartyService-HeartyService'
+
+def test_commit1_uses_branch_for_history_lookup():
+    """Ensure _commit1 queries commit1 history with the branch name (regression for missing commits)"""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    querier = Querier(config)
+
+    repo = 'test/repo'
+    commit1 = {
+        'branch': 'source-branch',
+        'commit': 'commit1hash'
+    }
+    commit2 = {
+        'branch': 'target-branch',
+        'commit': 'commit2hash'
+    }
+
+    calls = []
+
+    def mock_commits(repo_arg, branch_arg, commit_arg):
+        calls.append((repo_arg, branch_arg, commit_arg))
+        # First call (target branch) returns a log containing a potential common ancestor
+        if len(calls) == 1:
+            return {
+                'log': [{'commit': 'ancestorhash'}],
+                'next': None
+            }
+        # Second call should query commit1's history using its branch
+        if commit_arg == 'ancestorhash' and branch_arg == commit1['branch']:
+            return {'log': [{'commit': 'ancestorhash'}]}
+        return {'log': []}
+
+    with unittest.mock.patch.object(querier.gitiles, 'commits', side_effect=mock_commits):
+        with unittest.mock.patch.object(querier.gitiles, 'commit') as mock_commit:
+            # First call returns commit1 details, second call returns ancestor details
+            mock_commit.side_effect = [
+                {
+                    'commit': commit1['commit'],
+                    'committer': {'time': 'Mon Jan 02 12:00:00 2023 +0000'}
+                },
+                {
+                    'commit': 'ancestorhash',
+                    'committer': {'time': 'Mon Jan 01 12:00:00 2023 +0000'}
+                }
+            ]
+
+            result, label = querier._commit1(repo, commit1, commit2)
+
+            assert result is not None
+            assert result['commit'] == 'ancestorhash'
+            # First call should use commit2's branch
+            assert calls[0][1] == commit2['branch']
+            # Second call should use commit1's branch (regression check)
+            assert calls[1][1] == commit1['branch']
 
 
 def test_commit1_both_branch_and_hash_fail():

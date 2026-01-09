@@ -59,15 +59,21 @@ def test_differ_duplicate_names():
 
     # Check that both upstream branches are present
     upstreams = set()
+    paths = set()
     for key, value in updated.items():
         old_branch = value[0]['branch']
         new_branch = value[1]['branch']
         assert old_branch == new_branch  # Same branch in both manifests
         upstreams.add(old_branch)
+        paths.add(key)
 
     # Should have both 'main' and 'android16-release'
     assert 'main' in upstreams
     assert 'android16-release' in upstreams
+
+    # Should distinguish by path
+    assert 'build/soong-main' in paths
+    assert 'build/soong-android16-release' in paths
 
     print("✓ Test passed: Successfully differentiated projects with same name but different upstream")
 
@@ -141,6 +147,92 @@ def test_differ_with_single_project():
     buf = differ.run(data1, data2)
     assert buf is not None
     assert len(buf['update repo']) == 1
+
+
+def test_differ_treats_upstream_change_as_update():
+    """Upstream/branch change alone should produce an update, not add/remove."""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    differ = Differ(config)
+
+    data1 = {
+        'manifest': {
+            'default': {'@revision': 'old-default'},
+            'remote': [{'@name': 'origin'}],
+            'project': [
+                {
+                    '@name': 'platform/build',
+                    '@path': 'build/platform',
+                    '@revision': 'c111',
+                    '@upstream': 'old-upstream'
+                }
+            ]
+        }
+    }
+
+    data2 = {
+        'manifest': {
+            'default': {'@revision': 'new-default'},
+            'remote': [{'@name': 'origin'}],
+            'project': [
+                {
+                    '@name': 'platform/build',
+                    '@path': 'build/platform',
+                    '@revision': 'c222',
+                    '@upstream': 'new-upstream'
+                }
+            ]
+        }
+    }
+
+    buf = differ.run(data1, data2)
+    assert len(buf['add repo']) == 0
+    assert len(buf['remove repo']) == 0
+    assert len(buf['update repo']) == 1
+
+    update_entry = next(iter(buf['update repo'].values()))
+    assert update_entry[0]['branch'] == 'old-upstream'
+    assert update_entry[1]['branch'] == 'new-upstream'
+    assert update_entry[0]['commit'] == 'c111'
+    assert update_entry[1]['commit'] == 'c222'
+
+
+def test_differ_without_path_uses_name_key():
+    """When path is absent, matching by name should still treat upstream change as update."""
+    config = load(os.path.join(os.path.dirname(__file__), '../../diffmanifests/config/config.json'))
+    differ = Differ(config)
+
+    data1 = {
+        'manifest': {
+            'default': {'@revision': 'old-default'},
+            'remote': [{'@name': 'origin'}],
+            'project': {
+                '@name': 'platform/tools',
+                '@revision': 'deadbeef',
+                '@upstream': 'branch-A'
+            }
+        }
+    }
+
+    data2 = {
+        'manifest': {
+            'default': {'@revision': 'new-default'},
+            'remote': [{'@name': 'origin'}],
+            'project': {
+                '@name': 'platform/tools',
+                '@revision': 'feedface',
+                '@upstream': 'branch-B'
+            }
+        }
+    }
+
+    buf = differ.run(data1, data2)
+    assert len(buf['add repo']) == 0
+    assert len(buf['remove repo']) == 0
+    assert len(buf['update repo']) == 1
+
+    update_entry = next(iter(buf['update repo'].values()))
+    assert update_entry[0]['branch'] == 'branch-A'
+    assert update_entry[1]['branch'] == 'branch-B'
 
 
 def test_differ_missing_manifest_key():

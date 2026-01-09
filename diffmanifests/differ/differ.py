@@ -23,6 +23,10 @@ class Differ(object):
         return data['manifest']['default']['@revision']
 
     def _diff(self, data1, data2):
+        def _make_key(item):
+            # Use path if available to uniquely identify the project across branch/upstream changes
+            return item.get('@path', item['@name'])
+
         def _helper(data, project, key):
             revision = ''
             upstream = ''
@@ -30,7 +34,7 @@ class Differ(object):
             for item in project:
                 item_name = item['@name']
                 item_upstream = item.get('@upstream', self._revision(data))
-                item_key = f"{item_name}@{item_upstream}"
+                item_key = _make_key(item)
                 if item_key == key:
                     revision = item.get('@revision', '')
                     upstream = item_upstream
@@ -38,19 +42,15 @@ class Differ(object):
                     break
             return name, revision, upstream
 
-        def _make_key(item, default_revision):
-            name = item['@name']
-            upstream = item.get('@upstream', default_revision)
-            return f"{name}@{upstream}"
-
         project1 = data1['manifest']['project']
         if type(project1) is not list:
             project1 = [project1]
 
+        # Default revisions are kept for display only; matching ignores upstream changes
         default_revision1 = self._revision(data1)
         keys1 = []
         for item in project1:
-            keys1.append(_make_key(item, default_revision1))
+            keys1.append(_make_key(item))
 
         project2 = data2['manifest']['project']
         if type(project2) is not list:
@@ -59,14 +59,14 @@ class Differ(object):
         default_revision2 = self._revision(data2)
         keys2 = []
         for item in project2:
-            keys2.append(_make_key(item, default_revision2))
+            keys2.append(_make_key(item))
 
         added = {}
         buf = list(set(keys2).difference(set(keys1)))
         for key in buf:
             name, revision2, upstream2 = _helper(data2, project2, key)
-            # Use name@upstream as display key to differentiate duplicates
-            display_key = key if key.count('@') > 0 else name
+            # Use path/name as display key to differentiate duplicates with different paths
+            display_key = key
             added[display_key] = [
                 {},
                 {
@@ -80,8 +80,8 @@ class Differ(object):
         buf = list(set(keys1).difference(set(keys2)))
         for key in buf:
             name, revision1, upstream1 = _helper(data1, project1, key)
-            # Use name@upstream as display key to differentiate duplicates
-            display_key = key if key.count('@') > 0 else name
+            # Use path/name as display key to differentiate duplicates with different paths
+            display_key = key
             removed[display_key] = [
                 {
                     Repo.NAME: name,
@@ -98,8 +98,8 @@ class Differ(object):
             name2, revision2, upstream2 = _helper(data2, project2, key)
             if revision1 == revision2:
                 continue
-            # Use name@upstream as display key to differentiate duplicates
-            display_key = key if key.count('@') > 0 else name1
+            # Use path/name as display key to differentiate duplicates with different paths
+            display_key = key
             updated[display_key] = [
                 {
                     Repo.NAME: name1,
