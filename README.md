@@ -26,6 +26,7 @@
 - 📊 **Visual Reporting**: Generate detailed JSON reports with comprehensive commit information
 - 🔄 **API-Powered**: Seamlessly integrates with Gerrit and Gitiles REST APIs
 - ⚡ **Easy to Use**: Simple command-line interface with clear configuration
+- 🎨 **VS Code Extension**: [Available for Visual Studio Code](vscode/README.md) with GUI integration
 
 ---
 
@@ -33,6 +34,7 @@
 
 - [Requirements](#-requirements)
 - [Installation](#-installation)
+- [VS Code Extension](#-vs-code-extension)
 - [Quick Start](#-quick-start)
 - [Configuration](#-configuration)
 - [Features](#-features)
@@ -76,6 +78,46 @@ git clone https://github.com/craftslab/diffmanifests.git
 cd diffmanifests
 pip install -e .
 ```
+
+---
+
+## 🎨 VS Code Extension
+
+A **Visual Studio Code extension** is available for seamless integration with your IDE!
+
+### Features
+
+- 🖱️ **GUI Integration**: Compare manifests directly from VS Code
+- 🎯 **Context Menu**: Right-click on XML files to compare
+- ⚙️ **Auto-Configuration**: Automatic Python environment detection
+- 📊 **Multiple Output Formats**: JSON and Excel support
+- 🔄 **Auto-Installation**: Automatically installs diffmanifests package
+- 🌐 **Cross-Platform**: Works on Windows, Linux (Ubuntu), and macOS
+
+### Quick Links
+
+- 📖 **[VS Code Extension Documentation](vscode/README.md)** - Full user guide
+- 🚀 **[Installation Guide](vscode/INSTALL.md)** - Platform-specific instructions
+- ⚡ **[Quick Start](vscode/QUICKSTART.md)** - Get started in minutes
+
+### Installation
+
+```bash
+# Navigate to extension directory
+cd vscode
+
+# Install dependencies and build
+npm install
+npm run compile
+
+# Package extension
+vsce package
+
+# Install in VS Code
+code --install-extension diffmanifests-1.0.0.vsix
+```
+
+For detailed installation instructions, see the [VS Code Extension Guide](vscode/README.md).
 
 ---
 

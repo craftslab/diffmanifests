@@ -26,6 +26,7 @@
 - 📊 **可视化报告**：生成包含详细提交信息的 JSON 报告
 - 🔄 **API 驱动**：与 Gerrit 和 Gitiles REST API 无缝集成
 - ⚡ **易于使用**：简洁的命令行界面和清晰的配置
+- 🎨 **VS Code 扩展**：[支持 Visual Studio Code](vscode/README_cn.md) 并集成 GUI 界面
 
 ---
 
@@ -33,6 +34,7 @@
 
 - [系统要求](#-系统要求)
 - [安装](#-安装)
+- [VS Code 扩展](#-vs-code-扩展)
 - [快速开始](#-快速开始)
 - [配置](#-配置)
 - [功能特性](#-功能特性)
@@ -76,6 +78,46 @@ git clone https://github.com/craftslab/diffmanifests.git
 cd diffmanifests
 pip install -e .
 ```
+
+---
+
+## 🎨 VS Code 扩展
+
+提供 **Visual Studio Code 扩展**，与您的 IDE 无缝集成！
+
+### 功能特性
+
+- 🖱️ **GUI 集成**：直接在 VS Code 中比较清单
+- 🎯 **右键菜单**：右键点击 XML 文件进行比较
+- ⚙️ **自动配置**：自动检测 Python 环境
+- 📊 **多种输出格式**：支持 JSON 和 Excel
+- 🔄 **自动安装**：自动安装 diffmanifests 包
+- 🌐 **跨平台**：支持 Windows、Linux (Ubuntu) 和 macOS
+
+### 快速链接
+
+- 📖 **[VS Code 扩展文档](vscode/README_cn.md)** - 完整用户指南
+- 🚀 **[安装指南](vscode/INSTALL.md)** - 平台特定说明
+- ⚡ **[快速入门](vscode/QUICKSTART.md)** - 几分钟内开始使用
+
+### 安装
+
+```bash
+# 进入扩展目录
+cd vscode
+
+# 安装依赖并构建
+npm install
+npm run compile
+
+# 打包扩展
+vsce package
+
+# 在 VS Code 中安装
+code --install-extension diffmanifests-1.0.0.vsix
+```
+
+有关详细安装说明，请参阅 [VS Code 扩展指南](vscode/README_cn.md)。
 
 ---
 

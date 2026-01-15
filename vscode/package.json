@@ -1,0 +1,107 @@
+{
+  "name": "diffmanifests",
+  "displayName": "Diff Manifests",
+  "description": "Deep manifest comparison via Gerrit & Gitiles API",
+  "version": "1.0.0",
+  "publisher": "craftslab",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "diff",
+    "manifests",
+    "gitiles",
+    "gerrit",
+    "xml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "diffmanifests.compare",
+        "title": "Diff Manifests: Compare Two Manifest Files"
+      },
+      {
+        "command": "diffmanifests.compareSelection",
+        "title": "Diff Manifests: Compare Selected Files"
+      },
+      {
+        "command": "diffmanifests.openOutput",
+        "title": "Diff Manifests: Open Output File"
+      }
+    ],
+    "configuration": {
+      "title": "Diff Manifests",
+      "properties": {
+        "diffmanifests.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python executable. Leave as 'python' to use system default."
+        },
+        "diffmanifests.configFile": {
+          "type": "string",
+          "default": "",
+          "description": "Path to config.json file for diffmanifests"
+        },
+        "diffmanifests.outputFormat": {
+          "type": "string",
+          "default": ".json",
+          "enum": [
+            ".json",
+            ".xlsx"
+          ],
+          "description": "Output format for comparison results"
+        },
+        "diffmanifests.autoInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically install diffmanifests package if not found"
+        },
+        "diffmanifests.showOutputPanel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically show output panel when running comparison"
+        }
+      }
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceExtname == .xml",
+          "command": "diffmanifests.compareSelection",
+          "group": "diffmanifests@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.40.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/craftslab/diffmanifests"
+  },
+  "bugs": {
+    "url": "https://github.com/craftslab/diffmanifests/issues"
+  },
+  "homepage": "https://github.com/craftslab/diffmanifests#readme",
+  "license": "Apache-2.0"
+}
