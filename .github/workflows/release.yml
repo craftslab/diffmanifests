@@ -71,6 +71,9 @@ jobs:
     steps:
     - name: Check out
       uses: actions/checkout@v4
+    - name: Get version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -96,7 +99,7 @@ jobs:
     - name: Package extension
       working-directory: ./vscode
       run: |
-        vsce package --out ../dist/diffmanifests.vsix
+        vsce package ${{ steps.get_version.outputs.VERSION }} --out ../dist/diffmanifests.vsix
     - name: Verify package
       run: |
         ls -lh ./dist/diffmanifests.vsix
@@ -112,7 +115,7 @@ jobs:
       env:
         VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
       run: |
-        vsce publish -p $VSCE_PAT --packagePath ../dist/diffmanifests.vsix
+        vsce publish ${{ steps.get_version.outputs.VERSION }} -p $VSCE_PAT --packagePath ../dist/diffmanifests.vsix
 
   create-release:
     needs: [build-pypi, build-linux-binary, build-vscode-extension]
