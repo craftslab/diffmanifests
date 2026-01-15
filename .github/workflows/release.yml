@@ -90,6 +90,9 @@ jobs:
     - name: Install vsce
       run: |
         npm install -g @vscode/vsce
+    - name: Create dist directory
+      run: |
+        mkdir -p dist
     - name: Package extension
       working-directory: ./vscode
       run: |
