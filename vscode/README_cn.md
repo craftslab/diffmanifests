@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README_cn.md)
 
-一个用于使用 `diffmanifests` Python 包比较 Android 清单文件的 Visual Studio Code 扩展。此扩展将 diffmanifests CLI 工具无缝集成到 VS Code 中，支持 Windows 和 Ubuntu 平台。
+一个用于使用 `diffmanifests` Python 包比较 Android 清单文件的 Visual Studio Code 扩展。此扩展将 diffmanifests CLI 工具无缝集成到 VS Code 中，支持 Windows，Ubuntu 和 macOS 平台。
 
 ## 功能特性
 

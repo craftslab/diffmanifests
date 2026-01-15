@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README_cn.md)
 
-A Visual Studio Code extension for comparing Android manifest files using the `diffmanifests` Python package. This extension provides a seamless integration of the diffmanifests CLI tool into VS Code, supporting both Windows and Ubuntu platforms.
+A Visual Studio Code extension for comparing Android manifest files using the `diffmanifests` Python package. This extension provides a seamless integration of the diffmanifests CLI tool into VS Code, supporting Windows, Ubuntu and macOS platforms.
 
 ## Features
 
