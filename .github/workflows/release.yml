@@ -66,8 +66,53 @@ jobs:
         name: diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
         path: dist/diffmanifests-linux-ubuntu${{ matrix.ubuntu-version }}
 
+  build-vscode-extension:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    - name: Install dependencies
+      working-directory: ./vscode
+      run: |
+        npm install
+    - name: Lint code
+      working-directory: ./vscode
+      run: |
+        npm run lint || true
+    - name: Compile TypeScript
+      working-directory: ./vscode
+      run: |
+        npm run compile
+    - name: Install vsce
+      run: |
+        npm install -g @vscode/vsce
+    - name: Package extension
+      working-directory: ./vscode
+      run: |
+        vsce package --out ../dist/diffmanifests.vsix
+    - name: Verify package
+      run: |
+        ls -lh ./dist/diffmanifests.vsix
+    - name: Upload extension artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: diffmanifests-vscode-extension
+        path: dist/diffmanifests.vsix
+    - name: Publish to VS Code Marketplace
+      if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')
+      continue-on-error: true
+      working-directory: ./vscode
+      env:
+        VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+      run: |
+        vsce publish -p $VSCE_PAT --packagePath ../dist/diffmanifests.vsix
+
   create-release:
-    needs: [build-pypi, build-linux-binary]
+    needs: [build-pypi, build-linux-binary, build-vscode-extension]
     runs-on: ubuntu-latest
     steps:
     - name: Check out
@@ -83,6 +128,31 @@ jobs:
         files: |
           diffmanifests-linux-ubuntu22.04/diffmanifests-linux-ubuntu22.04
           diffmanifests-linux-ubuntu24.04/diffmanifests-linux-ubuntu24.04
+          diffmanifests-vscode-extension/diffmanifests.vsix
         name: Release ${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## Installation
+
+          ### PyPI Package
+          ```bash
+          pip install diffmanifests
+          ```
+
+          ### Binary (Linux)
+          Download the binary for your Ubuntu version and make it executable:
+          ```bash
+          chmod +x diffmanifests-linux-ubuntu*
+          ./diffmanifests-linux-ubuntu* --help
+          ```
+
+          ### VS Code Extension
+          1. Download `diffmanifests.vsix`
+          2. Install in VS Code:
+             ```bash
+             code --install-extension diffmanifests.vsix
+             ```
+          Or install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=craftslab.diffmanifests)
+
+          See [documentation](https://github.com/craftslab/diffmanifests) for more details.
       env:
         GITHUB_TOKEN: ${{ secrets.CRAFTSLAB_TOKEN }}
