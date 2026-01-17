@@ -19,18 +19,112 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "diffmanifests-sidebar",
+          "title": "Diff Manifests",
+          "icon": "$(diff)"
+        }
+      ]
+    },
+    "views": {
+      "diffmanifests-sidebar": [
+        {
+          "id": "diffmanifests-explorer",
+          "name": "Explorer",
+          "icon": "$(diff)",
+          "contextualTitle": "Diff Manifests"
+        },
+        {
+          "id": "diffmanifests-welcome",
+          "name": "Getting Started",
+          "when": "diffmanifests.showWelcome"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "diffmanifests.compare",
-        "title": "Diff Manifests: Compare Two Manifest Files"
+        "title": "Diff Manifests: Compare Two Manifest Files",
+        "icon": "$(diff)"
       },
       {
         "command": "diffmanifests.compareSelection",
-        "title": "Diff Manifests: Compare Selected Files"
+        "title": "Diff Manifests: Compare Selected Files",
+        "icon": "$(files)"
       },
       {
         "command": "diffmanifests.openOutput",
-        "title": "Diff Manifests: Open Output File"
+        "title": "Diff Manifests: Open Output File",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "diffmanifests.checkEnvironment",
+        "title": "Diff Manifests: Check Environment",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "diffmanifests.refreshSidebar",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "diffmanifests.openGitHub",
+        "title": "Open GitHub Repository",
+        "icon": "$(github)"
+      },
+      {
+        "command": "diffmanifests.openDocs",
+        "title": "Open Documentation",
+        "icon": "$(book)"
+      },
+      {
+        "command": "diffmanifests.reportIssue",
+        "title": "Report Issue",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "diffmanifests.configurePythonPath",
+        "title": "Configure Python Path",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "diffmanifests.configureConfigFile",
+        "title": "Configure Config File",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "diffmanifests.configureOutputFormat",
+        "title": "Configure Output Format",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "diffmanifests.toggleAutoInstall",
+        "title": "Toggle Auto Install",
+        "icon": "$(symbol-boolean)"
+      },
+      {
+        "command": "diffmanifests.toggleShowOutput",
+        "title": "Toggle Show Output Panel",
+        "icon": "$(output)"
+      },
+      {
+        "command": "diffmanifests.openSettings",
+        "title": "Open Extension Settings",
+        "icon": "$(settings)"
+      },
+      {
+        "command": "diffmanifests.clearRecentFiles",
+        "title": "Clear Recent Files",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "viewsWelcome": [
+      {
+        "view": "diffmanifests-explorer",
+        "contents": "Welcome to Diff Manifests!\n\nCompare Android manifest files using Gerrit & Gitiles API.\n\n[Compare Manifests](command:diffmanifests.compare)\n\n[Open Settings](command:diffmanifests.openSettings)\n\n[View Documentation](command:diffmanifests.openDocs)",
+        "when": "workspaceFolderCount == 0"
       }
     ],
     "configuration": {
@@ -68,6 +162,25 @@
       }
     },
     "menus": {
+      "view/title": [
+        {
+          "command": "diffmanifests.refreshSidebar",
+          "when": "view == diffmanifests-explorer",
+          "group": "navigation"
+        },
+        {
+          "command": "diffmanifests.compare",
+          "when": "view == diffmanifests-explorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "diffmanifests.clearRecentFiles",
+          "when": "view == diffmanifests-explorer && viewItem == recent",
+          "group": "inline"
+        }
+      ],
       "explorer/context": [
         {
           "when": "resourceExtname == .xml",

@@ -2,15 +2,24 @@ import * as vscode from 'vscode';
 import { PythonEnvironment } from './pythonEnvironment';
 import { DiffManifestsRunner } from './diffManifestsRunner';
 import { FileSelector } from './fileSelector';
+import { SidebarProvider } from './sidebarProvider';
 
 let outputChannel: vscode.OutputChannel;
 let pythonEnv: PythonEnvironment;
 let runner: DiffManifestsRunner;
+let sidebarProvider: SidebarProvider;
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel('Diff Manifests');
     pythonEnv = new PythonEnvironment(outputChannel);
     runner = new DiffManifestsRunner(pythonEnv, outputChannel);
+
+    // Initialize sidebar provider
+    sidebarProvider = new SidebarProvider(context);
+    const treeView = vscode.window.createTreeView('diffmanifests-explorer', {
+        treeDataProvider: sidebarProvider,
+        showCollapseAll: true
+    });
 
     // Register commands
     const compareCommand = vscode.commands.registerCommand(
@@ -28,11 +37,87 @@ export function activate(context: vscode.ExtensionContext) {
         () => openOutputFile()
     );
 
+    const checkEnvironmentCommand = vscode.commands.registerCommand(
+        'diffmanifests.checkEnvironment',
+        () => checkEnvironment()
+    );
+
+    const refreshSidebarCommand = vscode.commands.registerCommand(
+        'diffmanifests.refreshSidebar',
+        () => sidebarProvider.refresh()
+    );
+
+    const openGitHubCommand = vscode.commands.registerCommand(
+        'diffmanifests.openGitHub',
+        () => vscode.env.openExternal(vscode.Uri.parse('https://github.com/craftslab/diffmanifests'))
+    );
+
+    const openDocsCommand = vscode.commands.registerCommand(
+        'diffmanifests.openDocs',
+        () => vscode.env.openExternal(vscode.Uri.parse('https://github.com/craftslab/diffmanifests#readme'))
+    );
+
+    const reportIssueCommand = vscode.commands.registerCommand(
+        'diffmanifests.reportIssue',
+        () => vscode.env.openExternal(vscode.Uri.parse('https://github.com/craftslab/diffmanifests/issues'))
+    );
+
+    const configurePythonPathCommand = vscode.commands.registerCommand(
+        'diffmanifests.configurePythonPath',
+        () => configurePythonPath()
+    );
+
+    const configureConfigFileCommand = vscode.commands.registerCommand(
+        'diffmanifests.configureConfigFile',
+        () => configureConfigFile()
+    );
+
+    const configureOutputFormatCommand = vscode.commands.registerCommand(
+        'diffmanifests.configureOutputFormat',
+        () => configureOutputFormat()
+    );
+
+    const toggleAutoInstallCommand = vscode.commands.registerCommand(
+        'diffmanifests.toggleAutoInstall',
+        () => toggleAutoInstall()
+    );
+
+    const toggleShowOutputCommand = vscode.commands.registerCommand(
+        'diffmanifests.toggleShowOutput',
+        () => toggleShowOutput()
+    );
+
+    const openSettingsCommand = vscode.commands.registerCommand(
+        'diffmanifests.openSettings',
+        () => vscode.commands.executeCommand('workbench.action.openSettings', 'diffmanifests')
+    );
+
+    const clearRecentFilesCommand = vscode.commands.registerCommand(
+        'diffmanifests.clearRecentFiles',
+        () => {
+            sidebarProvider.clearRecentFiles();
+            vscode.window.showInformationMessage('Recent files cleared');
+        }
+    );
+
     context.subscriptions.push(
         compareCommand,
         compareSelectionCommand,
         openOutputCommand,
-        outputChannel
+        checkEnvironmentCommand,
+        refreshSidebarCommand,
+        openGitHubCommand,
+        openDocsCommand,
+        reportIssueCommand,
+        configurePythonPathCommand,
+        configureConfigFileCommand,
+        configureOutputFormatCommand,
+        toggleAutoInstallCommand,
+        toggleShowOutputCommand,
+        openSettingsCommand,
+        clearRecentFilesCommand,
+        outputChannel,
+        treeView
     );
 
     // Check Python environment on activation
@@ -92,6 +177,9 @@ async function compareManifests() {
         // Run comparison
         await runner.runComparison(manifest1, manifest2, config, output);
 
+        // Add to recent files
+        sidebarProvider.addRecentFile(output);
+
         // Ask if user wants to open the output file
         const openFile = await vscode.window.showInformationMessage(
             'Comparison completed successfully. Open output file?',
@@ -139,6 +227,9 @@ async function compareManifestsFromSelection(uri: vscode.Uri) {
         // Run comparison
         await runner.runComparison(manifest1, manifest2, config, output);
 
+        // Add to recent files
+        sidebarProvider.addRecentFile(output);
+
         // Ask if user wants to open the output file
         const openFile = await vscode.window.showInformationMessage(
             'Comparison completed successfully. Open output file?',
@@ -170,6 +261,75 @@ async function openOutputFile() {
         const doc = await vscode.workspace.openTextDocument(files[0]);
         await vscode.window.showTextDocument(doc);
     }
+}
+
+async function configurePythonPath() {
+    const config = vscode.workspace.getConfiguration('diffmanifests');
+    const currentPath = config.get<string>('pythonPath', 'python');
+
+    const newPath = await vscode.window.showInputBox({
+        prompt: 'Enter Python executable path',
+        value: currentPath,
+        placeHolder: 'python, python3, or /path/to/python'
+    });
+
+    if (newPath !== undefined) {
+        await config.update('pythonPath', newPath, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Python path updated to: ${newPath}`);
+        sidebarProvider.refresh();
+    }
+}
+
+async function configureConfigFile() {
+    const files = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        filters: {
+            'JSON Files': ['json'],
+            'All Files': ['*']
+        },
+        title: 'Select config.json file'
+    });
+
+    if (files && files.length > 0) {
+        const config = vscode.workspace.getConfiguration('diffmanifests');
+        await config.update('configFile', files[0].fsPath, vscode.ConfigurationTarget.Workspace);
+        vscode.window.showInformationMessage('Config file path updated');
+        sidebarProvider.refresh();
+    }
+}
+
+async function configureOutputFormat() {
+    const format = await vscode.window.showQuickPick(
+        ['.json', '.xlsx'],
+        {
+            placeHolder: 'Select output format'
+        }
+    );
+
+    if (format) {
+        const config = vscode.workspace.getConfiguration('diffmanifests');
+        await config.update('outputFormat', format, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Output format set to: ${format}`);
+        sidebarProvider.refresh();
+    }
+}
+
+async function toggleAutoInstall() {
+    const config = vscode.workspace.getConfiguration('diffmanifests');
+    const current = config.get<boolean>('autoInstall', true);
+    await config.update('autoInstall', !current, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage(`Auto install ${!current ? 'enabled' : 'disabled'}`);
+    sidebarProvider.refresh();
+}
+
+async function toggleShowOutput() {
+    const config = vscode.workspace.getConfiguration('diffmanifests');
+    const current = config.get<boolean>('showOutputPanel', true);
+    await config.update('showOutputPanel', !current, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage(`Auto-show output panel ${!current ? 'enabled' : 'disabled'}`);
+    sidebarProvider.refresh();
 }
 
 export function deactivate() {

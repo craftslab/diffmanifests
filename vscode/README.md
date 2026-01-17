@@ -8,6 +8,9 @@ A Visual Studio Code extension for comparing Android manifest files using the `d
 
 - 🔍 **Deep Manifest Comparison**: Compare two manifest XML files directly from VS Code
 - 🎯 **Context Menu Integration**: Right-click on manifest files in the explorer to compare
+- 📋 **Sidebar View**: Dedicated sidebar with quick access to all features and settings
+- ⚡ **Quick Actions**: Compare manifests, check environment, and manage settings from sidebar
+- 📂 **Recent Files**: Track and quickly access recently compared files
 - ⚙️ **Configurable**: Customize Python path, config file, and output format
 - 📊 **Multiple Output Formats**: Support for JSON and Excel output formats
 - 🔄 **Auto-Installation**: Automatically offers to install the diffmanifests package
@@ -134,7 +137,20 @@ pip3 show diffmanifests  # Ubuntu/Linux
 
 ## Usage
 
-### Method 1: Command Palette
+### Method 1: Sidebar (Recommended)
+
+1. Click on the Diff Manifests icon in the Activity Bar (left sidebar)
+2. In the sidebar, you'll see:
+   - **Actions**: Quick access to compare manifests and other operations
+   - **Recent Files**: List of recently compared files for quick access
+   - **Settings**: View and modify extension settings
+   - **Quick Links**: Access documentation and GitHub repository
+
+3. Click "Compare Manifests" to start a new comparison
+4. Follow the prompts to select files
+5. View results in the output panel or open the result file
+
+### Method 2: Command Palette
 
 1. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS)
 2. Type "Diff Manifests: Compare Two Manifest Files"
@@ -144,7 +160,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 6. Choose the output file location
 7. View the results
 
-### Method 2: Context Menu
+### Method 3: Context Menu
 
 1. Right-click on a manifest XML file in the Explorer
 2. Select "Diff Manifests: Compare Selected Files"
@@ -152,7 +168,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 4. Choose the output file location
 5. View the results
 
-### Method 3: Using Settings
+### Method 4: Using Settings
 
 Configure default settings for faster workflow:
 
@@ -190,6 +206,36 @@ Add to your `settings.json`:
   "diffmanifests.showOutputPanel": true
 }
 ```
+
+### Quick Configuration from Sidebar
+
+You can also configure settings directly from the sidebar:
+1. Open the Diff Manifests sidebar
+2. Expand the "Settings" section
+3. Click on any setting item to modify it:
+   - **Python Path**: Change Python executable path
+   - **Config File**: Select default config.json file
+   - **Output Format**: Switch between JSON and Excel
+   - **Auto Install**: Toggle automatic installation
+   - **Show Output**: Toggle output panel visibility
+   - **Open Settings**: Access full extension settings
+
+## Available Commands
+
+All commands are available via Command Palette (`Ctrl+Shift+P`):
+
+- **Diff Manifests: Compare Two Manifest Files** - Start a new comparison
+- **Diff Manifests: Compare Selected Files** - Compare from selected file
+- **Diff Manifests: Open Output File** - Open a result file
+- **Diff Manifests: Check Environment** - Verify Python and package installation
+- **Refresh** (Sidebar) - Refresh the sidebar view
+- **Open Settings** - Open extension settings
+- **Configure Python Path** - Set Python executable path
+- **Configure Config File** - Set default config file
+- **Configure Output Format** - Choose output format
+- **Toggle Auto Install** - Enable/disable auto-installation
+- **Toggle Show Output Panel** - Enable/disable auto-show output
+- **Clear Recent Files** - Clear recent files list
 
 ## Python Package Installation
 

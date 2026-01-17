@@ -8,6 +8,9 @@
 
 - 🔍 **深度清单比较**：直接在 VS Code 中比较两个清单 XML 文件
 - 🎯 **右键菜单集成**：在资源管理器中右键点击清单文件进行比较
+- 📋 **侧边栏视图**：专用侧边栏，快速访问所有功能和设置
+- ⚡ **快速操作**：从侧边栏比较清单、检查环境和管理设置
+- 📂 **最近文件**：跟踪并快速访问最近比较的文件
 - ⚙️ **可配置**：自定义 Python 路径、配置文件和输出格式
 - 📊 **多种输出格式**：支持 JSON 和 Excel 输出格式
 - 🔄 **自动安装**：自动提供安装 diffmanifests 包
@@ -134,7 +137,20 @@ pip3 show diffmanifests  # Ubuntu/Linux
 
 ## 使用方法
 
-### 方法 1：命令面板
+### 方法 1：侧边栏（推荐）
+
+1. 点击活动栏（左侧边栏）中的 Diff Manifests 图标
+2. 在侧边栏中，您将看到：
+   - **操作**：快速访问比较清单和其他操作
+   - **最近文件**：最近比较的文件列表，便于快速访问
+   - **设置**：查看和修改扩展设置
+   - **快速链接**：访问文档和 GitHub 仓库
+
+3. 点击"比较清单"开始新的比较
+4. 按照提示选择文件
+5. 在输出面板中查看结果或打开结果文件
+
+### 方法 2：命令面板
 
 1. 按 `Ctrl+Shift+P` (Windows/Linux) 或 `Cmd+Shift+P` (macOS)
 2. 输入 "Diff Manifests: Compare Two Manifest Files"
@@ -144,7 +160,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 6. 选择输出文件位置
 7. 查看结果
 
-### 方法 2：右键菜单
+### 方法 3：右键菜单
 
 1. 在资源管理器中右键点击清单 XML 文件
 2. 选择 "Diff Manifests: Compare Selected Files"
@@ -152,7 +168,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 4. 选择输出文件位置
 5. 查看结果
 
-### 方法 3：使用设置
+### 方法 4：使用设置
 
 配置默认设置以加快工作流程：
 
@@ -190,6 +206,36 @@ pip3 show diffmanifests  # Ubuntu/Linux
   "diffmanifests.showOutputPanel": true
 }
 ```
+
+### 从侧边栏快速配置
+
+您也可以直接从侧边栏配置设置：
+1. 打开 Diff Manifests 侧边栏
+2. 展开"设置"部分
+3. 点击任何设置项来修改它：
+   - **Python 路径**：更改 Python 可执行文件路径
+   - **配置文件**：选择默认 config.json 文件
+   - **输出格式**：在 JSON 和 Excel 之间切换
+   - **自动安装**：切换自动安装功能
+   - **显示输出**：切换输出面板可见性
+   - **打开设置**：访问完整的扩展设置
+
+## 可用命令
+
+所有命令都可以通过命令面板 (`Ctrl+Shift+P`) 访问：
+
+- **Diff Manifests: Compare Two Manifest Files** - 开始新的比较
+- **Diff Manifests: Compare Selected Files** - 从选定文件比较
+- **Diff Manifests: Open Output File** - 打开结果文件
+- **Diff Manifests: Check Environment** - 验证 Python 和包安装
+- **Refresh**（侧边栏）- 刷新侧边栏视图
+- **Open Settings** - 打开扩展设置
+- **Configure Python Path** - 设置 Python 可执行文件路径
+- **Configure Config File** - 设置默认配置文件
+- **Configure Output Format** - 选择输出格式
+- **Toggle Auto Install** - 启用/禁用自动安装
+- **Toggle Show Output Panel** - 启用/禁用自动显示输出
+- **Clear Recent Files** - 清除最近文件列表
 
 ## Python 包安装
 
