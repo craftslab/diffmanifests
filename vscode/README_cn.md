@@ -12,7 +12,7 @@
 - ⚡ **快速操作**：从侧边栏比较清单、检查环境和管理设置
 - 📂 **最近文件**：跟踪并快速访问最近比较的文件
 - ⚙️ **可配置**：自定义 Python 路径、配置文件和输出格式
-- 📊 **多种输出格式**：支持 JSON 和 Excel 输出格式
+- 📊 **多种输出格式**：支持 JSON、TXT 和 Excel 输出格式
 - 🔄 **自动安装**：自动提供安装 diffmanifests 包
 - 📝 **输出面板**：查看详细的比较日志和结果
 - 🌐 **跨平台**：支持 Windows、Linux (Ubuntu) 和 macOS
@@ -190,7 +190,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 | `diffmanifests.pythonPath` | string | `"python"` | Python 可执行文件路径 |
 | `diffmanifests.packagePath` | string | `""` | diffmanifests 包路径（仅在关闭自动安装时使用） |
 | `diffmanifests.configFile` | string | `""` | 默认 config.json 文件路径 |
-| `diffmanifests.outputFormat` | string | `".json"` | 输出格式（.json 或 .xlsx） |
+| `diffmanifests.outputFormat` | string | `".json"` | 输出格式（.json、.txt 或 .xlsx） |
 | `diffmanifests.autoInstall` | boolean | `true` | 如果未找到，则自动安装 diffmanifests |
 | `diffmanifests.showOutputPanel` | boolean | `true` | 运行时显示输出面板 |
 
@@ -318,6 +318,13 @@ pip3 show diffmanifests  # 验证安装
 - 提交信息
 - 标签
 - 更改详情
+
+### TXT 输出
+生成纯文本文件，包含：
+- 人类可读的比较结果
+- 易于分享和查看
+- 简单的文本格式
+- 无需特殊软件
 
 ### Excel 输出
 创建 Excel 电子表格，包含：

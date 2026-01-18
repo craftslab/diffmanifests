@@ -12,7 +12,7 @@ A Visual Studio Code extension for comparing Android manifest files using the `d
 - ⚡ **Quick Actions**: Compare manifests, check environment, and manage settings from sidebar
 - 📂 **Recent Files**: Track and quickly access recently compared files
 - ⚙️ **Configurable**: Customize Python path, config file, and output format
-- 📊 **Multiple Output Formats**: Support for JSON and Excel output formats
+- 📊 **Multiple Output Formats**: Support for JSON, TXT, and Excel output formats
 - 🔄 **Auto-Installation**: Automatically offers to install the diffmanifests package
 - 📝 **Output Panel**: View detailed comparison logs and results
 - 🌐 **Cross-Platform**: Works on Windows, Linux (Ubuntu), and macOS
@@ -190,7 +190,7 @@ The extension provides the following configuration options:
 | `diffmanifests.pythonPath` | string | `"python"` | Path to Python executable |
 | `diffmanifests.packagePath` | string | `""` | Path to diffmanifests package (only used when Auto Install is off) |
 | `diffmanifests.configFile` | string | `""` | Path to default config.json file |
-| `diffmanifests.outputFormat` | string | `".json"` | Output format (.json or .xlsx) |
+| `diffmanifests.outputFormat` | string | `".json"` | Output format (.json, .txt, or .xlsx) |
 | `diffmanifests.autoInstall` | boolean | `true` | Auto-install diffmanifests if not found |
 | `diffmanifests.showOutputPanel` | boolean | `true` | Show output panel when running |
 
@@ -320,6 +320,13 @@ Provides detailed comparison results in structured JSON format:
 - Commit information
 - Hashtags
 - Change details
+
+### TXT Output
+Generates a plain text file with:
+- Human-readable comparison results
+- Easy to share and view
+- Simple text format
+- No special software required
 
 ### Excel Output
 Creates an Excel spreadsheet with:
