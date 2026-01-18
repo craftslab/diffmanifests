@@ -33,12 +33,6 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
                     'folder'
                 ),
                 new SidebarItem(
-                    'Settings',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'settings',
-                    'folder'
-                ),
-                new SidebarItem(
                     'Quick Links',
                     vscode.TreeItemCollapsibleState.Collapsed,
                     'links',
