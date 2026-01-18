@@ -145,6 +145,7 @@
           "default": ".json",
           "enum": [
             ".json",
+            ".txt",
             ".xlsx"
           ],
           "description": "Output format for comparison results"
