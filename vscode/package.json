@@ -90,6 +90,11 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "diffmanifests.configurePackagePath",
+        "title": "Configure Package Path",
+        "icon": "$(settings-gear)"
+      },
+      {
         "command": "diffmanifests.configureConfigFile",
         "title": "Configure Config File",
         "icon": "$(settings-gear)"
@@ -134,6 +139,11 @@
           "type": "string",
           "default": "python",
           "description": "Path to Python executable. Leave as 'python' to use system default."
+        },
+        "diffmanifests.packagePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to diffmanifests package directory or executable. Only used when Auto Install is disabled. Leave empty to use pip-installed package."
         },
         "diffmanifests.configFile": {
           "type": "string",

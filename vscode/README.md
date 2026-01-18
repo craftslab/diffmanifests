@@ -188,6 +188,7 @@ The extension provides the following configuration options:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `diffmanifests.pythonPath` | string | `"python"` | Path to Python executable |
+| `diffmanifests.packagePath` | string | `""` | Path to diffmanifests package (only used when Auto Install is off) |
 | `diffmanifests.configFile` | string | `""` | Path to default config.json file |
 | `diffmanifests.outputFormat` | string | `".json"` | Output format (.json or .xlsx) |
 | `diffmanifests.autoInstall` | boolean | `true` | Auto-install diffmanifests if not found |
@@ -200,6 +201,7 @@ Add to your `settings.json`:
 ```json
 {
   "diffmanifests.pythonPath": "python3",
+  "diffmanifests.packagePath": "",
   "diffmanifests.configFile": "/path/to/config.json",
   "diffmanifests.outputFormat": ".json",
   "diffmanifests.autoInstall": true,
@@ -214,6 +216,7 @@ You can also configure settings directly from the sidebar:
 2. Expand the "Settings" section
 3. Click on any setting item to modify it:
    - **Python Path**: Change Python executable path
+   - **Package Path**: Set custom diffmanifests installation path (shown only when Auto Install is off)
    - **Config File**: Select default config.json file
    - **Output Format**: Switch between JSON and Excel
    - **Auto Install**: Toggle automatic installation

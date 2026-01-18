@@ -40,6 +40,14 @@ export class PythonEnvironment {
     }
 
     /**
+     * Get the diffmanifests package path from settings
+     */
+    public getPackagePath(): string {
+        const config = vscode.workspace.getConfiguration('diffmanifests');
+        return config.get<string>('packagePath', '');
+    }
+
+    /**
      * Check if Python is available
      */
     public async isPythonAvailable(): Promise<boolean> {

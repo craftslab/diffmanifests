@@ -55,13 +55,30 @@ export class DiffManifestsRunner {
                     progress.report({ increment: 20, message: 'Preparing arguments...' });
 
                     // Build command arguments
-                    const args = [
-                        '-m', 'diffmanifests',
-                        '-c', this.escapeArg(configFile),
-                        '-m', this.escapeArg(manifest1),
-                        '-n', this.escapeArg(manifest2),
-                        '-o', this.escapeArg(outputFile)
-                    ];
+                    const packagePath = this.pythonEnv.getPackagePath();
+                    let args: string[];
+
+                    if (packagePath && packagePath.trim() !== '') {
+                        // Use custom package path (direct script path or directory with __main__.py)
+                        this.outputChannel.appendLine(`Using custom package path: ${packagePath}`);
+                        args = [
+                            this.escapeArg(packagePath),
+                            '-c', this.escapeArg(configFile),
+                            '-m', this.escapeArg(manifest1),
+                            '-n', this.escapeArg(manifest2),
+                            '-o', this.escapeArg(outputFile)
+                        ];
+                    } else {
+                        // Use pip-installed package
+                        this.outputChannel.appendLine('Using pip-installed package');
+                        args = [
+                            '-m', 'diffmanifests',
+                            '-c', this.escapeArg(configFile),
+                            '-m', this.escapeArg(manifest1),
+                            '-n', this.escapeArg(manifest2),
+                            '-o', this.escapeArg(outputFile)
+                        ];
+                    }
 
                     // Show configuration
                     const config = vscode.workspace.getConfiguration('diffmanifests');

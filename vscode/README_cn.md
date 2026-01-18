@@ -188,6 +188,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 | 设置 | 类型 | 默认值 | 描述 |
 |---------|------|---------|-------------|
 | `diffmanifests.pythonPath` | string | `"python"` | Python 可执行文件路径 |
+| `diffmanifests.packagePath` | string | `""` | diffmanifests 包路径（仅在关闭自动安装时使用） |
 | `diffmanifests.configFile` | string | `""` | 默认 config.json 文件路径 |
 | `diffmanifests.outputFormat` | string | `".json"` | 输出格式（.json 或 .xlsx） |
 | `diffmanifests.autoInstall` | boolean | `true` | 如果未找到，则自动安装 diffmanifests |
@@ -200,6 +201,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 ```json
 {
   "diffmanifests.pythonPath": "python3",
+  "diffmanifests.packagePath": "",
   "diffmanifests.configFile": "/path/to/config.json",
   "diffmanifests.outputFormat": ".json",
   "diffmanifests.autoInstall": true,
@@ -213,8 +215,7 @@ pip3 show diffmanifests  # Ubuntu/Linux
 1. 打开 Diff Manifests 侧边栏
 2. 展开"设置"部分
 3. 点击任何设置项来修改它：
-   - **Python 路径**：更改 Python 可执行文件路径
-   - **配置文件**：选择默认 config.json 文件
+   - **Python 路径**：更改 Python 可执行文件路径   - **包路径**：设置自定义 diffmanifests 安装路径（仅在关闭自动安装时显示）   - **配置文件**：选择默认 config.json 文件
    - **输出格式**：在 JSON 和 Excel 之间切换
    - **自动安装**：切换自动安装功能
    - **显示输出**：切换输出面板可见性

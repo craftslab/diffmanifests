@@ -153,12 +153,13 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
     private async getSettingsItems(): Promise<SidebarItem[]> {
         const config = vscode.workspace.getConfiguration('diffmanifests');
         const pythonPath = config.get<string>('pythonPath', 'python');
+        const packagePath = config.get<string>('packagePath', '');
         const configFile = config.get<string>('configFile', 'Not set');
         const outputFormat = config.get<string>('outputFormat', '.json');
         const autoInstall = config.get<boolean>('autoInstall', true);
         const showOutputPanel = config.get<boolean>('showOutputPanel', true);
 
-        return [
+        const items = [
             new SidebarItem(
                 `Python: ${pythonPath}`,
                 vscode.TreeItemCollapsibleState.None,
@@ -166,7 +167,25 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
                 'symbol-namespace',
                 'diffmanifests.configurePythonPath',
                 'Configure Python path'
-            ),
+            )
+        ];
+
+        // Only show Package Path if Auto Install is disabled
+        if (!autoInstall) {
+            const packageDisplay = packagePath ? path.basename(packagePath) : 'Not set';
+            items.push(
+                new SidebarItem(
+                    `Package: ${packageDisplay}`,
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-package',
+                    'package',
+                    'diffmanifests.configurePackagePath',
+                    packagePath || 'Configure package path'
+                )
+            );
+        }
+
+        items.push(
             new SidebarItem(
                 `Config: ${path.basename(configFile)}`,
                 vscode.TreeItemCollapsibleState.None,
@@ -207,7 +226,9 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
                 'diffmanifests.openSettings',
                 'Open extension settings'
             )
-        ];
+        );
+
+        return items;
     }
 
     public addRecentFile(filePath: string): void {

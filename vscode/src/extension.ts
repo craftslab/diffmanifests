@@ -67,6 +67,11 @@ export function activate(context: vscode.ExtensionContext) {
         () => configurePythonPath()
     );
 
+    const configurePackagePathCommand = vscode.commands.registerCommand(
+        'diffmanifests.configurePackagePath',
+        () => configurePackagePath()
+    );
+
     const configureConfigFileCommand = vscode.commands.registerCommand(
         'diffmanifests.configureConfigFile',
         () => configureConfigFile()
@@ -110,6 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
         openDocsCommand,
         reportIssueCommand,
         configurePythonPathCommand,
+        configurePackagePathCommand,
         configureConfigFileCommand,
         configureOutputFormatCommand,
         toggleAutoInstallCommand,
@@ -277,6 +283,59 @@ async function configurePythonPath() {
         await config.update('pythonPath', newPath, vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage(`Python path updated to: ${newPath}`);
         sidebarProvider.refresh();
+    }
+}
+
+async function configurePackagePath() {
+    const config = vscode.workspace.getConfiguration('diffmanifests');
+    const currentPath = config.get<string>('packagePath', '');
+
+    // Give user options to browse or manually enter
+    const action = await vscode.window.showQuickPick(
+        ['Browse for File/Directory', 'Enter Path Manually', 'Clear Path (Use pip-installed package)'],
+        {
+            placeHolder: 'Choose how to set the package path'
+        }
+    );
+
+    if (!action) {
+        return;
+    }
+
+    if (action === 'Clear Path (Use pip-installed package)') {
+        await config.update('packagePath', '', vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage('Package path cleared. Will use pip-installed package.');
+        sidebarProvider.refresh();
+        return;
+    }
+
+    if (action === 'Browse for File/Directory') {
+        const files = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: true,
+            canSelectMany: false,
+            title: 'Select diffmanifests package directory or script',
+            openLabel: 'Select'
+        });
+
+        if (files && files.length > 0) {
+            const newPath = files[0].fsPath;
+            await config.update('packagePath', newPath, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Package path updated to: ${newPath}`);
+            sidebarProvider.refresh();
+        }
+    } else if (action === 'Enter Path Manually') {
+        const newPath = await vscode.window.showInputBox({
+            prompt: 'Enter diffmanifests package path',
+            value: currentPath,
+            placeHolder: '/path/to/diffmanifests or /path/to/diffmanifests/__main__.py'
+        });
+
+        if (newPath !== undefined) {
+            await config.update('packagePath', newPath, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Package path updated to: ${newPath}`);
+            sidebarProvider.refresh();
+        }
     }
 }
 
