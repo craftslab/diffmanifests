@@ -72,11 +72,6 @@ export function activate(context: vscode.ExtensionContext) {
         () => configurePackagePath()
     );
 
-    const configureConfigFileCommand = vscode.commands.registerCommand(
-        'diffmanifests.configureConfigFile',
-        () => configureConfigFile()
-    );
-
     const configureOutputFormatCommand = vscode.commands.registerCommand(
         'diffmanifests.configureOutputFormat',
         () => configureOutputFormat()
@@ -116,7 +111,6 @@ export function activate(context: vscode.ExtensionContext) {
         reportIssueCommand,
         configurePythonPathCommand,
         configurePackagePathCommand,
-        configureConfigFileCommand,
         configureOutputFormatCommand,
         toggleAutoInstallCommand,
         toggleShowOutputCommand,
@@ -336,26 +330,6 @@ async function configurePackagePath() {
             vscode.window.showInformationMessage(`Package path updated to: ${newPath}`);
             sidebarProvider.refresh();
         }
-    }
-}
-
-async function configureConfigFile() {
-    const files = await vscode.window.showOpenDialog({
-        canSelectFiles: true,
-        canSelectFolders: false,
-        canSelectMany: false,
-        filters: {
-            'JSON Files': ['json'],
-            'All Files': ['*']
-        },
-        title: 'Select config.json file'
-    });
-
-    if (files && files.length > 0) {
-        const config = vscode.workspace.getConfiguration('diffmanifests');
-        await config.update('configFile', files[0].fsPath, vscode.ConfigurationTarget.Workspace);
-        vscode.window.showInformationMessage('Config file path updated');
-        sidebarProvider.refresh();
     }
 }
 

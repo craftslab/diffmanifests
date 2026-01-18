@@ -191,16 +191,15 @@ The extension provides the following configuration options:
 |---------|------|---------|-------------|
 | `diffmanifests.pythonPath` | string | `"python"` | Path to Python executable |
 | `diffmanifests.packagePath` | string | `""` | Path to diffmanifests package (only used when Auto Install is off) |
-| `diffmanifests.configFile` | string | `""` | Path to default config.json file (if not set, uses settings below) |
-| `diffmanifests.gerrit.url` | string | `"https://android-review.googlesource.com"` | Gerrit server URL (used when Config File is not set) |
-| `diffmanifests.gerrit.user` | string | `""` | Gerrit username (used when Config File is not set) |
-| `diffmanifests.gerrit.password` | string | `""` | Gerrit password/token (used when Config File is not set) |
-| `diffmanifests.gerrit.queryOptions` | array | `["CURRENT_REVISION"]` | Gerrit query options (used when Config File is not set) |
-| `diffmanifests.gitiles.url` | string | `"https://android.googlesource.com"` | Gitiles server URL (used when Config File is not set) |
-| `diffmanifests.gitiles.user` | string | `""` | Gitiles username (used when Config File is not set) |
-| `diffmanifests.gitiles.password` | string | `""` | Gitiles password/token (used when Config File is not set) |
-| `diffmanifests.gitiles.timeout` | number | `-1` | Gitiles timeout in seconds, -1 for no timeout (used when Config File is not set) |
-| `diffmanifests.gitiles.retry` | number | `1` | Gitiles retry attempts (used when Config File is not set) |
+| `diffmanifests.gerrit.url` | string | `"https://android-review.googlesource.com"` | Gerrit server URL |
+| `diffmanifests.gerrit.user` | string | `""` | Gerrit username |
+| `diffmanifests.gerrit.password` | string | `""` | Gerrit password/token |
+| `diffmanifests.gerrit.queryOptions` | array | `["CURRENT_REVISION"]` | Gerrit query options |
+| `diffmanifests.gitiles.url` | string | `"https://android.googlesource.com"` | Gitiles server URL |
+| `diffmanifests.gitiles.user` | string | `""` | Gitiles username |
+| `diffmanifests.gitiles.password` | string | `""` | Gitiles password/token |
+| `diffmanifests.gitiles.timeout` | number | `-1` | Gitiles timeout in seconds, -1 for no timeout |
+| `diffmanifests.gitiles.retry` | number | `1` | Gitiles retry attempts |
 | `diffmanifests.outputFormat` | string | `".json"` | Output format (.json, .txt, or .xlsx) |
 | `diffmanifests.autoInstall` | boolean | `true` | Auto-install diffmanifests if not found |
 | `diffmanifests.showOutputPanel` | boolean | `true` | Show output panel when running |
@@ -213,13 +212,6 @@ Add to your `settings.json`:
 {
   "diffmanifests.pythonPath": "python3",
   "diffmanifests.packagePath": "",
-  "diffmanifests.configFile": "/path/to/config.json",
-  "diffmanifests.outputFormat": ".json",
-  "diffmanifests.autoInstall": true,
-  "diffmanifests.showOutputPanel": true,
-
-  // OR if not using a config file, configure Gerrit and Gitiles directly:
-  "diffmanifests.configFile": "",
   "diffmanifests.gerrit.url": "https://android-review.googlesource.com",
   "diffmanifests.gerrit.user": "your-username",
   "diffmanifests.gerrit.password": "your-password-or-token",
@@ -228,23 +220,14 @@ Add to your `settings.json`:
   "diffmanifests.gitiles.user": "",
   "diffmanifests.gitiles.password": "",
   "diffmanifests.gitiles.timeout": -1,
-  "diffmanifests.gitiles.retry": 1
+  "diffmanifests.gitiles.retry": 1,
+  "diffmanifests.outputFormat": ".json",
+  "diffmanifests.autoInstall": true,
+  "diffmanifests.showOutputPanel": true
 }
 ```
-
-### Configuration Options
-
-**Option 1: Using a Config File**
-
-Set `diffmanifests.configFile` to point to your `config.json` file. The extension will use this file for all Gerrit and Gitiles settings.
-
-**Option 2: Using Extension Settings (No Config File)**
-
-If you don't set `diffmanifests.configFile` (leave it empty), the extension will generate a temporary config file from the individual settings:
-- `diffmanifests.gerrit.*` - Gerrit server configuration
-- `diffmanifests.gitiles.*` - Gitiles server configuration
-
-This is useful when you want to manage all settings through VS Code's settings UI without maintaining a separate config file.
+}
+```
 
 ### Quick Configuration from Sidebar
 

@@ -26,73 +26,10 @@ export class FileSelector {
     }
 
     /**
-     * Select a config JSON file or generate one from settings
+     * Generate config file from settings
      */
     public static async selectConfigFile(): Promise<string | undefined> {
-        const config = vscode.workspace.getConfiguration('diffmanifests');
-        const defaultConfigPath = config.get<string>('configFile', '');
-
-        // If a default config is set and exists, ask if user wants to use it
-        if (defaultConfigPath) {
-            const useDefault = await vscode.window.showQuickPick(
-                ['Use default config', 'Select different config', 'Use settings'],
-                {
-                    placeHolder: `Use default config: ${defaultConfigPath}?`
-                }
-            );
-
-            if (useDefault === 'Use default config') {
-                return defaultConfigPath;
-            } else if (useDefault === 'Use settings') {
-                return this.generateConfigFromSettings();
-            }
-        } else {
-            // No config file set, offer to use settings or select file
-            const choice = await vscode.window.showQuickPick(
-                ['Use configuration from settings', 'Select config file'],
-                {
-                    placeHolder: 'Choose config source'
-                }
-            );
-
-            if (!choice) {
-                return undefined;
-            }
-
-            if (choice === 'Use configuration from settings') {
-                return this.generateConfigFromSettings();
-            }
-        }
-
-        const files = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            filters: {
-                'JSON Files': ['json'],
-                'All Files': ['*']
-            },
-            title: 'Select config file'
-        });
-
-        if (files && files.length > 0) {
-            const selectedPath = files[0].fsPath;
-
-            // Ask if user wants to save as default
-            const saveAsDefault = await vscode.window.showQuickPick(
-                ['Yes', 'No'],
-                {
-                    placeHolder: 'Save this as default config file?'
-                }
-            );
-
-            if (saveAsDefault === 'Yes') {
-                await config.update('configFile', selectedPath, vscode.ConfigurationTarget.Workspace);
-            }
-
-            return selectedPath;
-        }
-        return undefined;
+        return this.generateConfigFromSettings();
     }
 
     /**

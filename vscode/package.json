@@ -95,11 +95,6 @@
         "icon": "$(settings-gear)"
       },
       {
-        "command": "diffmanifests.configureConfigFile",
-        "title": "Configure Config File",
-        "icon": "$(settings-gear)"
-      },
-      {
         "command": "diffmanifests.configureOutputFormat",
         "title": "Configure Output Format",
         "icon": "$(settings-gear)"
@@ -144,11 +139,6 @@
           "type": "string",
           "default": "",
           "description": "Path to diffmanifests package directory or executable. Only used when Auto Install is disabled. Leave empty to use pip-installed package."
-        },
-        "diffmanifests.configFile": {
-          "type": "string",
-          "default": "",
-          "description": "Path to config.json file for diffmanifests. If not set, the extension will use the configuration settings below."
         },
         "diffmanifests.gerrit.url": {
           "type": "string",

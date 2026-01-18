@@ -148,7 +148,6 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
         const config = vscode.workspace.getConfiguration('diffmanifests');
         const pythonPath = config.get<string>('pythonPath', 'python');
         const packagePath = config.get<string>('packagePath', '');
-        const configFile = config.get<string>('configFile', 'Not set');
         const outputFormat = config.get<string>('outputFormat', '.json');
         const autoInstall = config.get<boolean>('autoInstall', true);
         const showOutputPanel = config.get<boolean>('showOutputPanel', true);
@@ -161,14 +160,6 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
                 'symbol-namespace',
                 'diffmanifests.configurePythonPath',
                 'Configure Python path'
-            ),
-            new SidebarItem(
-                `Config: ${path.basename(configFile)}`,
-                vscode.TreeItemCollapsibleState.None,
-                'setting-config',
-                'settings-gear',
-                'diffmanifests.configureConfigFile',
-                configFile
             ),
             new SidebarItem(
                 `Format: ${outputFormat}`,
