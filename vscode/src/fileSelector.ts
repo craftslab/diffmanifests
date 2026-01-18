@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
 
 export class FileSelector {
     /**
@@ -24,7 +26,7 @@ export class FileSelector {
     }
 
     /**
-     * Select a config JSON file
+     * Select a config JSON file or generate one from settings
      */
     public static async selectConfigFile(): Promise<string | undefined> {
         const config = vscode.workspace.getConfiguration('diffmanifests');
@@ -33,7 +35,7 @@ export class FileSelector {
         // If a default config is set and exists, ask if user wants to use it
         if (defaultConfigPath) {
             const useDefault = await vscode.window.showQuickPick(
-                ['Use default config', 'Select different config'],
+                ['Use default config', 'Select different config', 'Use settings'],
                 {
                     placeHolder: `Use default config: ${defaultConfigPath}?`
                 }
@@ -41,6 +43,24 @@ export class FileSelector {
 
             if (useDefault === 'Use default config') {
                 return defaultConfigPath;
+            } else if (useDefault === 'Use settings') {
+                return this.generateConfigFromSettings();
+            }
+        } else {
+            // No config file set, offer to use settings or select file
+            const choice = await vscode.window.showQuickPick(
+                ['Use configuration from settings', 'Select config file'],
+                {
+                    placeHolder: 'Choose config source'
+                }
+            );
+
+            if (!choice) {
+                return undefined;
+            }
+
+            if (choice === 'Use configuration from settings') {
+                return this.generateConfigFromSettings();
             }
         }
 
@@ -73,6 +93,42 @@ export class FileSelector {
             return selectedPath;
         }
         return undefined;
+    }
+
+    /**
+     * Generate a temporary config file from VS Code settings
+     */
+    private static generateConfigFromSettings(): string {
+        const config = vscode.workspace.getConfiguration('diffmanifests');
+
+        // Build config object from settings
+        const configObj = {
+            gerrit: {
+                url: config.get<string>('gerrit.url', 'https://android-review.googlesource.com'),
+                user: config.get<string>('gerrit.user', ''),
+                pass: config.get<string>('gerrit.password', ''),
+                query: {
+                    option: config.get<string[]>('gerrit.queryOptions', ['CURRENT_REVISION'])
+                }
+            },
+            gitiles: {
+                url: config.get<string>('gitiles.url', 'https://android.googlesource.com'),
+                user: config.get<string>('gitiles.user', ''),
+                pass: config.get<string>('gitiles.password', ''),
+                timeout: config.get<number>('gitiles.timeout', -1),
+                retry: config.get<number>('gitiles.retry', 1)
+            }
+        };
+
+        // Create temporary config file
+        const tempDir = os.tmpdir();
+        const tempConfigPath = path.join(tempDir, `diffmanifests-config-${Date.now()}.json`);
+
+        fs.writeFileSync(tempConfigPath, JSON.stringify(configObj, null, 2), 'utf8');
+
+        vscode.window.showInformationMessage('Using configuration from extension settings');
+
+        return tempConfigPath;
     }
 
     /**

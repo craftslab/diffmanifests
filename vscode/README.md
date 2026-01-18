@@ -183,13 +183,24 @@ Configure default settings for faster workflow:
 
 ## Configuration
 
+> 📖 For detailed configuration instructions and examples, see [CONFIGURATION_GUIDE.md](CONFIGURATION_GUIDE.md)
+
 The extension provides the following configuration options:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `diffmanifests.pythonPath` | string | `"python"` | Path to Python executable |
 | `diffmanifests.packagePath` | string | `""` | Path to diffmanifests package (only used when Auto Install is off) |
-| `diffmanifests.configFile` | string | `""` | Path to default config.json file |
+| `diffmanifests.configFile` | string | `""` | Path to default config.json file (if not set, uses settings below) |
+| `diffmanifests.gerrit.url` | string | `"https://android-review.googlesource.com"` | Gerrit server URL (used when Config File is not set) |
+| `diffmanifests.gerrit.user` | string | `""` | Gerrit username (used when Config File is not set) |
+| `diffmanifests.gerrit.password` | string | `""` | Gerrit password/token (used when Config File is not set) |
+| `diffmanifests.gerrit.queryOptions` | array | `["CURRENT_REVISION"]` | Gerrit query options (used when Config File is not set) |
+| `diffmanifests.gitiles.url` | string | `"https://android.googlesource.com"` | Gitiles server URL (used when Config File is not set) |
+| `diffmanifests.gitiles.user` | string | `""` | Gitiles username (used when Config File is not set) |
+| `diffmanifests.gitiles.password` | string | `""` | Gitiles password/token (used when Config File is not set) |
+| `diffmanifests.gitiles.timeout` | number | `-1` | Gitiles timeout in seconds, -1 for no timeout (used when Config File is not set) |
+| `diffmanifests.gitiles.retry` | number | `1` | Gitiles retry attempts (used when Config File is not set) |
 | `diffmanifests.outputFormat` | string | `".json"` | Output format (.json, .txt, or .xlsx) |
 | `diffmanifests.autoInstall` | boolean | `true` | Auto-install diffmanifests if not found |
 | `diffmanifests.showOutputPanel` | boolean | `true` | Show output panel when running |
@@ -205,9 +216,35 @@ Add to your `settings.json`:
   "diffmanifests.configFile": "/path/to/config.json",
   "diffmanifests.outputFormat": ".json",
   "diffmanifests.autoInstall": true,
-  "diffmanifests.showOutputPanel": true
+  "diffmanifests.showOutputPanel": true,
+
+  // OR if not using a config file, configure Gerrit and Gitiles directly:
+  "diffmanifests.configFile": "",
+  "diffmanifests.gerrit.url": "https://android-review.googlesource.com",
+  "diffmanifests.gerrit.user": "your-username",
+  "diffmanifests.gerrit.password": "your-password-or-token",
+  "diffmanifests.gerrit.queryOptions": ["CURRENT_REVISION"],
+  "diffmanifests.gitiles.url": "https://android.googlesource.com",
+  "diffmanifests.gitiles.user": "",
+  "diffmanifests.gitiles.password": "",
+  "diffmanifests.gitiles.timeout": -1,
+  "diffmanifests.gitiles.retry": 1
 }
 ```
+
+### Configuration Options
+
+**Option 1: Using a Config File**
+
+Set `diffmanifests.configFile` to point to your `config.json` file. The extension will use this file for all Gerrit and Gitiles settings.
+
+**Option 2: Using Extension Settings (No Config File)**
+
+If you don't set `diffmanifests.configFile` (leave it empty), the extension will generate a temporary config file from the individual settings:
+- `diffmanifests.gerrit.*` - Gerrit server configuration
+- `diffmanifests.gitiles.*` - Gitiles server configuration
+
+This is useful when you want to manage all settings through VS Code's settings UI without maintaining a separate config file.
 
 ### Quick Configuration from Sidebar
 

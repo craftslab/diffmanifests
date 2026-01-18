@@ -183,13 +183,24 @@ pip3 show diffmanifests  # Ubuntu/Linux
 
 ## 配置
 
+> 📖 有关详细配置说明和示例，请参阅 [CONFIGURATION_GUIDE_cn.md](CONFIGURATION_GUIDE_cn.md)
+
 扩展提供以下配置选项：
 
 | 设置 | 类型 | 默认值 | 描述 |
 |---------|------|---------|-------------|
 | `diffmanifests.pythonPath` | string | `"python"` | Python 可执行文件路径 |
 | `diffmanifests.packagePath` | string | `""` | diffmanifests 包路径（仅在关闭自动安装时使用） |
-| `diffmanifests.configFile` | string | `""` | 默认 config.json 文件路径 |
+| `diffmanifests.configFile` | string | `""` | 默认 config.json 文件路径（如果未设置，则使用下面的设置） |
+| `diffmanifests.gerrit.url` | string | `"https://android-review.googlesource.com"` | Gerrit 服务器 URL（在未设置配置文件时使用） |
+| `diffmanifests.gerrit.user` | string | `""` | Gerrit 用户名（在未设置配置文件时使用） |
+| `diffmanifests.gerrit.password` | string | `""` | Gerrit 密码/令牌（在未设置配置文件时使用） |
+| `diffmanifests.gerrit.queryOptions` | array | `["CURRENT_REVISION"]` | Gerrit 查询选项（在未设置配置文件时使用） |
+| `diffmanifests.gitiles.url` | string | `"https://android.googlesource.com"` | Gitiles 服务器 URL（在未设置配置文件时使用） |
+| `diffmanifests.gitiles.user` | string | `""` | Gitiles 用户名（在未设置配置文件时使用） |
+| `diffmanifests.gitiles.password` | string | `""` | Gitiles 密码/令牌（在未设置配置文件时使用） |
+| `diffmanifests.gitiles.timeout` | number | `-1` | Gitiles 超时时间（秒），-1 表示无超时（在未设置配置文件时使用） |
+| `diffmanifests.gitiles.retry` | number | `1` | Gitiles 重试次数（在未设置配置文件时使用） |
 | `diffmanifests.outputFormat` | string | `".json"` | 输出格式（.json、.txt 或 .xlsx） |
 | `diffmanifests.autoInstall` | boolean | `true` | 如果未找到，则自动安装 diffmanifests |
 | `diffmanifests.showOutputPanel` | boolean | `true` | 运行时显示输出面板 |
@@ -205,9 +216,35 @@ pip3 show diffmanifests  # Ubuntu/Linux
   "diffmanifests.configFile": "/path/to/config.json",
   "diffmanifests.outputFormat": ".json",
   "diffmanifests.autoInstall": true,
-  "diffmanifests.showOutputPanel": true
+  "diffmanifests.showOutputPanel": true,
+
+  // 或者，如果不使用配置文件，直接配置 Gerrit 和 Gitiles：
+  "diffmanifests.configFile": "",
+  "diffmanifests.gerrit.url": "https://android-review.googlesource.com",
+  "diffmanifests.gerrit.user": "your-username",
+  "diffmanifests.gerrit.password": "your-password-or-token",
+  "diffmanifests.gerrit.queryOptions": ["CURRENT_REVISION"],
+  "diffmanifests.gitiles.url": "https://android.googlesource.com",
+  "diffmanifests.gitiles.user": "",
+  "diffmanifests.gitiles.password": "",
+  "diffmanifests.gitiles.timeout": -1,
+  "diffmanifests.gitiles.retry": 1
 }
 ```
+
+### 配置选项
+
+**选项 1：使用配置文件**
+
+设置 `diffmanifests.configFile` 指向您的 `config.json` 文件。扩展将使用此文件进行所有 Gerrit 和 Gitiles 设置。
+
+**选项 2：使用扩展设置（无配置文件）**
+
+如果不设置 `diffmanifests.configFile`（保持为空），扩展将从单个设置生成临时配置文件：
+- `diffmanifests.gerrit.*` - Gerrit 服务器配置
+- `diffmanifests.gitiles.*` - Gitiles 服务器配置
+
+当您希望通过 VS Code 的设置 UI 管理所有设置而无需维护单独的配置文件时，这很有用。
 
 ### 从侧边栏快速配置
 
