@@ -161,25 +161,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
                 'symbol-namespace',
                 'diffmanifests.configurePythonPath',
                 'Configure Python path'
-            )
-        ];
-
-        // Only show Package Path if Auto Install is disabled
-        if (!autoInstall) {
-            const packageDisplay = packagePath ? path.basename(packagePath) : 'Not set';
-            items.push(
-                new SidebarItem(
-                    `Package: ${packageDisplay}`,
-                    vscode.TreeItemCollapsibleState.None,
-                    'setting-package',
-                    'package',
-                    'diffmanifests.configurePackagePath',
-                    packagePath || 'Configure package path'
-                )
-            );
-        }
-
-        items.push(
+            ),
             new SidebarItem(
                 `Config: ${path.basename(configFile)}`,
                 vscode.TreeItemCollapsibleState.None,
@@ -203,7 +185,25 @@ export class SidebarProvider implements vscode.TreeDataProvider<SidebarItem> {
                 'symbol-boolean',
                 'diffmanifests.toggleAutoInstall',
                 'Toggle auto-install feature'
-            ),
+            )
+        ];
+
+        // Only show Package Path if Auto Install is disabled
+        if (!autoInstall) {
+            const packageDisplay = packagePath ? path.basename(packagePath) : 'Not set';
+            items.push(
+                new SidebarItem(
+                    `Package: ${packageDisplay}`,
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-package',
+                    'package',
+                    'diffmanifests.configurePackagePath',
+                    packagePath || 'Configure package path'
+                )
+            );
+        }
+
+        items.push(
             new SidebarItem(
                 `Show Output: ${showOutputPanel ? 'On' : 'Off'}`,
                 vscode.TreeItemCollapsibleState.None,
