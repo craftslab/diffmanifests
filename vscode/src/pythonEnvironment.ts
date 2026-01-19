@@ -80,24 +80,27 @@ export class PythonEnvironment {
     /**
      * Install diffmanifests package
      */
-    public async installDiffManifests(): Promise<void> {
+    public async installDiffManifests(upgrade: boolean = false): Promise<void> {
         const pythonPath = this.getPythonPath();
+        const action = upgrade ? 'Upgrading' : 'Installing';
+        const actionLower = upgrade ? 'upgrade' : 'install';
+        const upgradeFlag = upgrade ? ' --upgrade' : '';
 
         return vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
-                title: 'Installing diffmanifests package...',
+                title: `${action} diffmanifests package...`,
                 cancellable: false
             },
             async (progress) => {
                 try {
                     this.outputChannel.show(true);
-                    this.outputChannel.appendLine('Installing diffmanifests...');
+                    this.outputChannel.appendLine(`${action} diffmanifests...`);
 
-                    progress.report({ increment: 30, message: 'Running pip install...' });
+                    progress.report({ increment: 30, message: `Running pip ${actionLower}...` });
 
                     const { stdout, stderr } = await execAsync(
-                        `"${pythonPath}" -m pip install diffmanifests`,
+                        `"${pythonPath}" -m pip install${upgradeFlag} diffmanifests`,
                         { maxBuffer: 1024 * 1024 * 10 } // 10MB buffer
                     );
 
@@ -106,17 +109,54 @@ export class PythonEnvironment {
                         this.outputChannel.appendLine(stderr);
                     }
 
-                    progress.report({ increment: 70, message: 'Installation complete' });
+                    progress.report({ increment: 70, message: `${action} complete` });
 
-                    vscode.window.showInformationMessage('diffmanifests installed successfully');
-                    this.outputChannel.appendLine('diffmanifests installed successfully');
+                    vscode.window.showInformationMessage(`diffmanifests ${upgrade ? 'upgraded' : 'installed'} successfully`);
+                    this.outputChannel.appendLine(`diffmanifests ${upgrade ? 'upgraded' : 'installed'} successfully`);
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
-                    this.outputChannel.appendLine(`Installation failed: ${errorMessage}`);
-                    throw new Error(`Failed to install diffmanifests: ${errorMessage}`);
+                    this.outputChannel.appendLine(`${action} failed: ${errorMessage}`);
+                    throw new Error(`Failed to ${actionLower} diffmanifests: ${errorMessage}`);
                 }
             }
         );
+    }
+
+    /**
+     * Check if there's a newer version of diffmanifests available
+     */
+    public async checkForUpdates(): Promise<{ hasUpdate: boolean; currentVersion: string; latestVersion: string }> {
+        try {
+            const pythonPath = this.getPythonPath();
+
+            // Get current version
+            const { stdout: showOutput } = await execAsync(
+                `"${pythonPath}" -m pip show diffmanifests`
+            );
+            const versionMatch = showOutput.match(/Version:\s*(.+)/);
+            const currentVersion = versionMatch ? versionMatch[1].trim() : 'unknown';
+
+            // Check latest version from PyPI
+            const { stdout: indexOutput } = await execAsync(
+                `"${pythonPath}" -m pip index versions diffmanifests`
+            );
+            const latestMatch = indexOutput.match(/diffmanifests\s+\((.+?)\)/);
+            const latestVersion = latestMatch ? latestMatch[1].trim() : currentVersion;
+
+            const hasUpdate = currentVersion !== latestVersion && latestVersion !== 'unknown';
+
+            return { hasUpdate, currentVersion, latestVersion };
+        } catch (error) {
+            this.outputChannel.appendLine(`Failed to check for updates: ${error}`);
+            return { hasUpdate: false, currentVersion: 'unknown', latestVersion: 'unknown' };
+        }
+    }
+
+    /**
+     * Upgrade diffmanifests package
+     */
+    public async upgradeDiffManifests(): Promise<void> {
+        return this.installDiffManifests(true);
     }
 
     /**

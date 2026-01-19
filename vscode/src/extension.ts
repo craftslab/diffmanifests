@@ -130,6 +130,7 @@ async function checkEnvironment() {
 
     try {
         const isInstalled = await pythonEnv.isDiffManifestsInstalled();
+
         if (!isInstalled && autoInstall) {
             const answer = await vscode.window.showWarningMessage(
                 'diffmanifests package is not installed. Would you like to install it now?',
@@ -142,6 +143,32 @@ async function checkEnvironment() {
                 await pythonEnv.installDiffManifests();
             } else if (answer === 'Don\'t Ask Again') {
                 await config.update('autoInstall', false, vscode.ConfigurationTarget.Global);
+            }
+        } else if (isInstalled && autoInstall) {
+            // Check for updates
+            const updateInfo = await pythonEnv.checkForUpdates();
+
+            if (updateInfo.hasUpdate) {
+                outputChannel.appendLine(
+                    `Update available: ${updateInfo.currentVersion} -> ${updateInfo.latestVersion}`
+                );
+
+                const answer = await vscode.window.showInformationMessage(
+                    `A new version of diffmanifests is available (${updateInfo.latestVersion}). Current: ${updateInfo.currentVersion}. Upgrade now?`,
+                    'Yes',
+                    'No',
+                    'Don\'t Ask Again'
+                );
+
+                if (answer === 'Yes') {
+                    await pythonEnv.upgradeDiffManifests();
+                } else if (answer === 'Don\'t Ask Again') {
+                    await config.update('autoInstall', false, vscode.ConfigurationTarget.Global);
+                }
+            } else {
+                outputChannel.appendLine(
+                    `diffmanifests is up to date (version: ${updateInfo.currentVersion})`
+                );
             }
         }
     } catch (error) {
