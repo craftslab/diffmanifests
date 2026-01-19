@@ -130,24 +130,73 @@ export class PythonEnvironment {
             const pythonPath = this.getPythonPath();
 
             // Get current version
+            this.outputChannel.appendLine('Checking current diffmanifests version...');
             const { stdout: showOutput } = await execAsync(
                 `"${pythonPath}" -m pip show diffmanifests`
             );
             const versionMatch = showOutput.match(/Version:\s*(.+)/);
             const currentVersion = versionMatch ? versionMatch[1].trim() : 'unknown';
 
-            // Check latest version from PyPI
-            const { stdout: indexOutput } = await execAsync(
-                `"${pythonPath}" -m pip index versions diffmanifests`
-            );
-            const latestMatch = indexOutput.match(/diffmanifests\s+\((.+?)\)/);
-            const latestVersion = latestMatch ? latestMatch[1].trim() : currentVersion;
+            if (currentVersion === 'unknown') {
+                this.outputChannel.appendLine('Could not determine current version');
+                return { hasUpdate: false, currentVersion: 'unknown', latestVersion: 'unknown' };
+            }
 
-            const hasUpdate = currentVersion !== latestVersion && latestVersion !== 'unknown';
+            this.outputChannel.appendLine(`Current version: ${currentVersion}`);
 
-            return { hasUpdate, currentVersion, latestVersion };
-        } catch (error) {
-            this.outputChannel.appendLine(`Failed to check for updates: ${error}`);
+            // Use pip install --dry-run --upgrade to check if update is available
+            // This is more reliable across different pip versions and platforms
+            this.outputChannel.appendLine('Checking for available updates...');
+            try {
+                const { stdout: dryRunOutput, stderr: dryRunStderr } = await execAsync(
+                    `"${pythonPath}" -m pip install diffmanifests --upgrade --dry-run`,
+                    { maxBuffer: 1024 * 1024 * 5 }
+                );
+
+                // Log stderr for debugging (not necessarily an error)
+                if (dryRunStderr && dryRunStderr.trim()) {
+                    this.outputChannel.appendLine(`Dry-run stderr: ${dryRunStderr}`);
+                }
+
+                // Check if it would install a new version
+                const wouldInstallMatch = dryRunOutput.match(/Would install diffmanifests-([0-9.]+)/i);
+                if (wouldInstallMatch) {
+                    const latestVersion = wouldInstallMatch[1].trim();
+                    const hasUpdate = currentVersion !== latestVersion;
+                    this.outputChannel.appendLine(`Latest version available: ${latestVersion}`);
+                    this.outputChannel.appendLine(`Update available: ${hasUpdate}`);
+                    return { hasUpdate, currentVersion, latestVersion };
+                }
+
+                // If no "Would install" message, package is up to date
+                this.outputChannel.appendLine(`No updates found - package is up to date at version ${currentVersion}`);
+                return { hasUpdate: false, currentVersion, latestVersion: currentVersion };
+            } catch (dryRunError: any) {
+                // Fallback: try pip index versions (may not work on older pip versions)
+                this.outputChannel.appendLine(`Dry-run method failed: ${dryRunError.message || dryRunError}`);
+                this.outputChannel.appendLine('Trying pip index versions as fallback...');
+                try {
+                    const { stdout: indexOutput } = await execAsync(
+                        `"${pythonPath}" -m pip index versions diffmanifests`
+                    );
+                    const latestMatch = indexOutput.match(/diffmanifests\s+\(([0-9.]+)\)/i);
+                    if (latestMatch) {
+                        const latestVersion = latestMatch[1].trim();
+                        const hasUpdate = currentVersion !== latestVersion;
+                        this.outputChannel.appendLine(`Latest version from index: ${latestVersion}`);
+                        this.outputChannel.appendLine(`Update available: ${hasUpdate}`);
+                        return { hasUpdate, currentVersion, latestVersion };
+                    }
+                } catch (indexError: any) {
+                    this.outputChannel.appendLine(`pip index versions also failed: ${indexError.message || indexError}`);
+                }
+
+                // Last fallback: assume no update available
+                this.outputChannel.appendLine('Could not determine if updates are available, assuming up to date');
+                return { hasUpdate: false, currentVersion, latestVersion: currentVersion };
+            }
+        } catch (error: any) {
+            this.outputChannel.appendLine(`Failed to check for updates: ${error.message || error}`);
             return { hasUpdate: false, currentVersion: 'unknown', latestVersion: 'unknown' };
         }
     }
