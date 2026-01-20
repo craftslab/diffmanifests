@@ -137,7 +137,13 @@ export class PythonEnvironment {
      * Install diffmanifests package
      */
     public async installDiffManifests(upgrade: boolean = false): Promise<void> {
-        const pythonPath = this.getPythonPath();
+        // Verify Python 3 is available first
+        const pythonAvailable = await this.isPythonAvailable();
+        if (!pythonAvailable) {
+            throw new Error('Python 3 is not available. Please install Python 3 and try again.');
+        }
+
+        const pythonPath = this.cachedPythonPath || this.getPythonPath();
         const action = upgrade ? 'Upgrading' : 'Installing';
         const actionLower = upgrade ? 'upgrade' : 'install';
         const upgradeFlag = upgrade ? ' --upgrade' : '';
@@ -151,7 +157,7 @@ export class PythonEnvironment {
             async (progress) => {
                 try {
                     this.outputChannel.show(true);
-                    this.outputChannel.appendLine(`${action} diffmanifests...`);
+                    this.outputChannel.appendLine(`${action} diffmanifests using ${pythonPath}...`);
 
                     progress.report({ increment: 30, message: `Running pip ${actionLower}...` });
 
@@ -186,7 +192,14 @@ export class PythonEnvironment {
      */
     public async checkForUpdates(): Promise<{ hasUpdate: boolean; currentVersion: string; latestVersion: string }> {
         try {
-            const pythonPath = this.getPythonPath();
+            // Ensure we have a verified Python 3
+            const pythonAvailable = await this.isPythonAvailable();
+            if (!pythonAvailable) {
+                this.outputChannel.appendLine('Python 3 is not available for checking updates');
+                return { hasUpdate: false, currentVersion: 'unknown', latestVersion: 'unknown' };
+            }
+
+            const pythonPath = this.cachedPythonPath || this.getPythonPath();
 
             // Get current version
             this.outputChannel.appendLine('Checking current diffmanifests version...');
