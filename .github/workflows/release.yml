@@ -135,7 +135,7 @@ jobs:
           diffmanifests-linux-ubuntu22.04/diffmanifests-linux-ubuntu22.04
           diffmanifests-linux-ubuntu24.04/diffmanifests-linux-ubuntu24.04
           diffmanifests-vscode-extension/diffmanifests.vsix
-        name: Release ${{ steps.get_version.outputs.VERSION }}
+        name: ${{ steps.get_version.outputs.VERSION }}
         body: |
           ## Installation
 
