@@ -1,30 +1,15 @@
-<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-  <rect width="128" height="128" fill="#3C3C3C"/>
-  <g transform="translate(20, 20)">
-    <!-- Left side (removed) -->
-    <rect x="0" y="10" width="35" height="8" fill="#E51400" opacity="0.8"/>
-    <rect x="0" y="25" width="28" height="8" fill="#E51400" opacity="0.8"/>
-    <rect x="0" y="40" width="32" height="8" fill="#E51400" opacity="0.8"/>
-    <!-- Minus signs -->
-    <rect x="2" y="13" width="6" height="2" fill="#FFF"/>
-    <rect x="2" y="28" width="6" height="2" fill="#FFF"/>
-    <rect x="2" y="43" width="6" height="2" fill="#FFF"/>
-    
-    <!-- Middle lines -->
-    <path d="M 40 14 L 48 30" stroke="#888" stroke-width="1.5" fill="none"/>
-    <path d="M 40 29 L 48 45" stroke="#888" stroke-width="1.5" fill="none"/>
-    <path d="M 40 44 L 48 60" stroke="#888" stroke-width="1.5" fill="none"/>
-    
-    <!-- Right side (added) -->
-    <rect x="53" y="28" width="35" height="8" fill="#487E02" opacity="0.8"/>
-    <rect x="53" y="43" width="30" height="8" fill="#487E02" opacity="0.8"/>
-    <rect x="53" y="58" width="33" height="8" fill="#487E02" opacity="0.8"/>
-    <!-- Plus signs -->
-    <rect x="55" y="31" width="6" height="2" fill="#FFF"/>
-    <rect x="57" y="29" width="2" height="6" fill="#FFF"/>
-    <rect x="55" y="46" width="6" height="2" fill="#FFF"/>
-    <rect x="57" y="44" width="2" height="6" fill="#FFF"/>
-    <rect x="55" y="61" width="6" height="2" fill="#FFF"/>
-    <rect x="57" y="59" width="2" height="6" fill="#FFF"/>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diff Manifests Icon">
+  <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left document (removed) - moved lower -->
+    <rect x="18" y="34" width="40" height="56" rx="6"/>
+    <line x1="28" y1="62" x2="48" y2="62"/>
+
+    <!-- Right document (added) - moved higher -->
+    <rect x="70" y="10" width="40" height="56" rx="6"/>
+    <line x1="80" y1="38" x2="100" y2="38"/>
+    <line x1="90" y1="28" x2="90" y2="48"/>
+
+    <!-- Subtle center guide (comparison divider) -->
+    <path d="M64 24 L64 92" opacity="0.2"/>
   </g>
 </svg>
