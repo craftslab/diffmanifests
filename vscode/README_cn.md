@@ -226,8 +226,6 @@ pip3 show diffmanifests  # Ubuntu/Linux
   "diffmanifests.showOutputPanel": true
 }
 ```
-}
-```
 
 ### 从侧边栏快速配置
 

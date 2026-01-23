@@ -226,8 +226,6 @@ Add to your `settings.json`:
   "diffmanifests.showOutputPanel": true
 }
 ```
-}
-```
 
 ### Quick Configuration from Sidebar
 
