@@ -144,17 +144,17 @@
         "diffmanifests.gerrit.url": {
           "type": "string",
           "default": "https://android-review.googlesource.com",
-          "description": "Gerrit server URL (used when Config File is not set)"
+          "description": "Gerrit server URL"
         },
         "diffmanifests.gerrit.user": {
           "type": "string",
           "default": "",
-          "description": "Gerrit username (used when Config File is not set)"
+          "description": "Gerrit username"
         },
         "diffmanifests.gerrit.password": {
           "type": "string",
           "default": "",
-          "description": "Gerrit password or API token (used when Config File is not set)"
+          "description": "Gerrit password or API token"
         },
         "diffmanifests.gerrit.queryOptions": {
           "type": "array",
@@ -162,32 +162,32 @@
           "items": {
             "type": "string"
           },
-          "description": "Gerrit query options (used when Config File is not set)"
+          "description": "Gerrit query options"
         },
         "diffmanifests.gitiles.url": {
           "type": "string",
           "default": "https://android.googlesource.com",
-          "description": "Gitiles server URL (used when Config File is not set)"
+          "description": "Gitiles server URL"
         },
         "diffmanifests.gitiles.user": {
           "type": "string",
           "default": "",
-          "description": "Gitiles username (used when Config File is not set)"
+          "description": "Gitiles username"
         },
         "diffmanifests.gitiles.password": {
           "type": "string",
           "default": "",
-          "description": "Gitiles password or API token (used when Config File is not set)"
+          "description": "Gitiles password or API token"
         },
         "diffmanifests.gitiles.timeout": {
           "type": "number",
           "default": -1,
-          "description": "Gitiles request timeout in seconds, -1 for no timeout (used when Config File is not set)"
+          "description": "Gitiles request timeout in seconds, -1 for no timeout"
         },
         "diffmanifests.gitiles.retry": {
           "type": "number",
           "default": 1,
-          "description": "Number of retry attempts for Gitiles requests (used when Config File is not set)"
+          "description": "Number of retry attempts for Gitiles requests"
         },
         "diffmanifests.outputFormat": {
           "type": "string",
