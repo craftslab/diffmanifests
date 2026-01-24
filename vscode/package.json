@@ -131,34 +131,46 @@
     "configuration": {
       "title": "Diff Manifests",
       "properties": {
+        "diffmanifests.autoInstall": {
+          "type": "boolean",
+          "default": true,
+          "order": 1,
+          "description": "Automatically install diffmanifests package if not found"
+        },
         "diffmanifests.pythonPath": {
           "type": "string",
           "default": "python",
+          "order": 2,
           "description": "Path to Python executable. Leave as 'python' to use system default."
         },
         "diffmanifests.packagePath": {
           "type": "string",
           "default": "",
+          "order": 3,
           "description": "Path to diffmanifests package directory or executable. Only used when Auto Install is disabled. Leave empty to use pip-installed package."
         },
         "diffmanifests.gerrit.url": {
           "type": "string",
           "default": "https://android-review.googlesource.com",
+          "order": 4,
           "description": "Gerrit server URL"
         },
         "diffmanifests.gerrit.user": {
           "type": "string",
           "default": "",
+          "order": 5,
           "description": "Gerrit username"
         },
         "diffmanifests.gerrit.password": {
           "type": "string",
           "default": "",
+          "order": 6,
           "description": "Gerrit password or API token"
         },
         "diffmanifests.gerrit.queryOptions": {
           "type": "array",
           "default": ["CURRENT_REVISION"],
+          "order": 7,
           "items": {
             "type": "string"
           },
@@ -167,31 +179,37 @@
         "diffmanifests.gitiles.url": {
           "type": "string",
           "default": "https://android.googlesource.com",
+          "order": 8,
           "description": "Gitiles server URL"
         },
         "diffmanifests.gitiles.user": {
           "type": "string",
           "default": "",
+          "order": 9,
           "description": "Gitiles username"
         },
         "diffmanifests.gitiles.password": {
           "type": "string",
           "default": "",
+          "order": 10,
           "description": "Gitiles password or API token"
         },
         "diffmanifests.gitiles.timeout": {
           "type": "number",
           "default": -1,
+          "order": 11,
           "description": "Gitiles request timeout in seconds, -1 for no timeout"
         },
         "diffmanifests.gitiles.retry": {
           "type": "number",
           "default": 1,
+          "order": 12,
           "description": "Number of retry attempts for Gitiles requests"
         },
         "diffmanifests.outputFormat": {
           "type": "string",
           "default": ".json",
+          "order": 13,
           "enum": [
             ".json",
             ".txt",
@@ -199,14 +217,10 @@
           ],
           "description": "Output format for comparison results"
         },
-        "diffmanifests.autoInstall": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically install diffmanifests package if not found"
-        },
         "diffmanifests.showOutputPanel": {
           "type": "boolean",
           "default": true,
+          "order": 14,
           "description": "Automatically show output panel when running comparison"
         }
       }
