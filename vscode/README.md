@@ -4,14 +4,6 @@
 
 A Visual Studio Code extension for comparing Android manifest files using the `diffmanifests` Python package. This extension provides a seamless integration of the diffmanifests CLI tool into VS Code, supporting Windows, Ubuntu and macOS platforms.
 
-## Workflow
-
-<div align="center">
-
-![Workflow Diagram](images/branch.png)
-
-</div>
-
 ## Features
 
 - 🔍 **Deep Manifest Comparison**: Compare two manifest XML files directly from VS Code
