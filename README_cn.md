@@ -199,7 +199,11 @@ diffmanifests \
 
 对比两个清单版本以识别提交之间的变更。该工具使用三向对比模型分析差异：
 
+<div align="center">
+
 ![branch](branch.png)
+
+</div>
 
 **对比逻辑**：
 - **图表 A**：从提交 1 到提交 2 的变更

@@ -6,7 +6,11 @@
 
 ## 工作流程
 
+<div align="center">
+
 ![工作流程图](images/branch.png)
+
+</div>
 
 ## 功能特性
 

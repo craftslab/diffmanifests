@@ -199,7 +199,11 @@ Create a `config.json` file with the following structure:
 
 Compare two manifest versions to identify changes between commits. The tool analyzes differences using a three-way comparison model:
 
+<div align="center">
+
 ![branch](branch.png)
+
+</div>
 
 **Comparison Logic**:
 - **Diagram A**: Changes from commit 1 to commit 2

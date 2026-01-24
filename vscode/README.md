@@ -6,7 +6,11 @@ A Visual Studio Code extension for comparing Android manifest files using the `d
 
 ## Workflow
 
+<div align="center">
+
 ![Workflow Diagram](images/branch.png)
+
+</div>
 
 ## Features
 
