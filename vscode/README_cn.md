@@ -4,10 +4,13 @@
 
 一个用于使用 `diffmanifests` Python 包比较 Android 清单文件的 Visual Studio Code 扩展。此扩展将 diffmanifests CLI 工具无缝集成到 VS Code 中，支持 Windows，Ubuntu 和 macOS 平台。
 
+## 工作流程
+
+![工作流程图](images/branch.png)
+
 ## 功能特性
 
 - 🔍 **深度清单比较**：直接在 VS Code 中比较两个清单 XML 文件
-- 🎯 **右键菜单集成**：在资源管理器中右键点击清单文件进行比较
 - 📋 **侧边栏视图**：专用侧边栏，快速访问所有功能和设置
 - ⚡ **快速操作**：从侧边栏比较清单、检查环境和管理设置
 - 📂 **最近文件**：跟踪并快速访问最近比较的文件
@@ -15,7 +18,7 @@
 - 📊 **多种输出格式**：支持 JSON、TXT 和 Excel 输出格式
 - 🔄 **自动安装**：自动提供安装 diffmanifests 包
 - 📝 **输出面板**：查看详细的比较日志和结果
-- 🌐 **跨平台**：支持 Windows、Linux (Ubuntu) 和 macOS
+- 🌐 **跨平台**：支持 Windows、Ubuntu 和 macOS
 
 ## 先决条件
 

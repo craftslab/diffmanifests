@@ -91,11 +91,10 @@ A **Visual Studio Code extension** is available for seamless integration with yo
 - 📋 **Sidebar View**: Dedicated sidebar with quick access to all features and settings
 - ⚡ **Quick Actions**: Compare manifests, check environment, and manage settings from sidebar
 - 📂 **Recent Files**: Track and quickly access recently compared files
-- 🎯 **Context Menu**: Right-click on XML files to compare
 - ⚙️ **Auto-Configuration**: Automatic Python environment detection
 - 📊 **Multiple Output Formats**: JSON and Excel support
 - 🔄 **Auto-Installation**: Automatically installs diffmanifests package
-- 🌐 **Cross-Platform**: Works on Windows, Linux (Ubuntu), and macOS
+- 🌐 **Cross-Platform**: Works on Windows, Ubuntu, and macOS
 
 ### Quick Links
 
